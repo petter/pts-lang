@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/petter/pts#readme",
   "dependencies": {
+    "tree-sitter": "^0.17.1",
     "tree-sitter-pts": "git+ssh://git@github.com:petter/tree-sitter-pts.git"
   },
   "devDependencies": {
