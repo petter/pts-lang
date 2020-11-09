@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/petter/pts/issues"
   },
-  "homepage": "https://github.com/petter/pts#readme"
+  "homepage": "https://github.com/petter/pts#readme",
+  "dependencies": {
+    "tree-sitter-pts": "git+ssh://git@github.com:petter/tree-sitter-pts.git"
+  }
 }
