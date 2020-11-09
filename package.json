@@ -1,0 +1,19 @@
+{
+  "name": "pts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petter/pts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/petter/pts/issues"
+  },
+  "homepage": "https://github.com/petter/pts#readme"
+}
