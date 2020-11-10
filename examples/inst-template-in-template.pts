@@ -1,0 +1,9 @@
+template T1 {
+    class A {
+        i = 0;
+    }
+}
+
+template T2 {
+    inst T1;
+}

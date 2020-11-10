@@ -1,0 +1,5 @@
+template T {
+    class A {
+        i = 0
+    }
+}

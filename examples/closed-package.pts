@@ -1,0 +1,5 @@
+package P {
+    class A {
+        i = 0;
+    }
+}
