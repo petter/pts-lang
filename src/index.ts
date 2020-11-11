@@ -7,10 +7,12 @@ const PTS = require("tree-sitter-pts");
 const parser = new Parser();
 parser.setLanguage(PTS);
 
-const content = fs.readFileSync("./examples/closed-template.pts", "utf-8");
+const content = fs.readFileSync(
+  "./examples/inst-template-in-template.pts",
+  "utf-8"
+);
 
 const parseTree = parser.parse(content);
-console.log(parseTree.rootNode.toString());
 
 prettyPrinter(parseTree.walk(), 0);
 
@@ -20,3 +22,22 @@ function prettyPrinter(cursor: Parser.TreeCursor, indent: number) {
   if (cursor.gotoNextSibling()) prettyPrinter(cursor, indent);
   cursor.gotoParent();
 }
+
+function registerTemplates(program: Parser.SyntaxNode) {
+  const templateDecls = program.children.filter(
+    (child) => child.type === "template_declaration"
+  );
+
+  return templateDecls.map((templateDecl) => {
+    const identifier = templateDecl.children.find(
+      (child) => child.type === "identifier"
+    )?.text;
+    const body = templateDecl.children.find(
+      (child) => child.type === "package_template_body"
+    )?.children;
+    return { identifier, body };
+  });
+}
+
+const templates = registerTemplates(parseTree.rootNode);
+console.log(templates);
