@@ -1,12 +1,12 @@
 import Parser from "tree-sitter";
 
-interface ASTNode {
+export interface ASTNode {
   type: string;
   text: string;
   children: ASTNode[];
 }
 
-export default function toAST(tree: Parser.Tree): ASTNode {
+export function toAST(tree: Parser.Tree): ASTNode {
   const cursor = tree.walk();
   function visitNode(): ASTNode {
     return {
