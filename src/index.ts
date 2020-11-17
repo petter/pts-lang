@@ -14,7 +14,7 @@ const content = fs.readFileSync(
 
 const parseTree = parser.parse(content);
 
-prettyPrinter(parseTree.walk(), 0);
+// prettyPrinter(parseTree.walk(), 0);
 
 function prettyPrinter(cursor: Parser.TreeCursor, indent: number) {
   console.log("  ".repeat(indent) + cursor.nodeType);
@@ -23,21 +23,34 @@ function prettyPrinter(cursor: Parser.TreeCursor, indent: number) {
   cursor.gotoParent();
 }
 
-function registerTemplates(program: Parser.SyntaxNode) {
+interface Template {
+  identifier: string;
+  body: Parser.SyntaxNode[];
+}
+
+function registerTemplates(program: Parser.SyntaxNode): Template[] {
   const templateDecls = program.children.filter(
     (child) => child.type === "template_declaration"
   );
 
   return templateDecls.map((templateDecl) => {
-    const identifier = templateDecl.children.find(
-      (child) => child.type === "identifier"
-    )?.text;
-    const body = templateDecl.children.find(
-      (child) => child.type === "package_template_body"
-    )?.children;
+    const identifier =
+      templateDecl.children.find((child) => child.type === "identifier")
+        ?.text || "";
+    const body =
+      templateDecl.children.find(
+        (child) => child.type === "package_template_body"
+      )?.children || [];
     return { identifier, body };
   });
 }
 
+function isClosed(body: Parser.SyntaxNode[]) {
+  return !body.some((el) => el.type === "inst_statement");
+}
+
 const templates = registerTemplates(parseTree.rootNode);
-console.log(templates);
+
+const template = templates[0];
+
+console.log(isClosed(template.body));
