@@ -13,7 +13,7 @@ const parser = new Parser();
 parser.setLanguage(PTS);
 
 const content = fs.readFileSync(
-  "./examples/inst-template-in-template.pts",
+  "./examples/inst-template-in-package.pts",
   "utf-8"
 );
 
@@ -26,14 +26,13 @@ const sExprTransformer: Transformer<ASTNode, string> = {
 };
 const sExprs = transform(ast, sExprTransformer);
 
-
 try {
-  const inst = replaceInstantiations(ast)
-  const newTemplates = getTemplates(inst)
-  console.log(newTemplates.map(el => el.body))
+  const inst = replaceInstantiations(ast);
+  const newTemplates = getTemplates(inst);
+  console.log(newTemplates.map((el) => el.body));
 
-  fs.writeFileSync("out.ts", toTS(inst))
+  fs.writeFileSync("out.ts", toTS(inst));
 } catch (e) {
-  console.error(e)
-  process.exit(1)
+  console.error(e);
+  process.exit(1);
 }
