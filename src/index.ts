@@ -4,6 +4,7 @@ import { toAST, ASTNode } from "./AST";
 import transform, { Transformer, Transform } from "./transform";
 import replaceInstantiations from "./transform/replaceInstantiations";
 import getTemplates from "./util/getTemplates";
+import toTS from "./transform/toTS";
 
 // tslint:disable-next-line: no-var-requires
 const PTS = require("tree-sitter-pts");
@@ -30,6 +31,8 @@ try {
   const inst = replaceInstantiations(ast)
   const newTemplates = getTemplates(inst)
   console.log(newTemplates.map(el => el.body))
+
+  fs.writeFileSync("out.ts", toTS(inst))
 } catch (e) {
   console.error(e)
   process.exit(1)
