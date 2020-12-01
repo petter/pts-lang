@@ -4,6 +4,7 @@ export interface ASTNode {
   type: string;
   text: string;
   children: ASTNode[];
+  
 }
 
 export function toAST(tree: Parser.Tree): ASTNode {

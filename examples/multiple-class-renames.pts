@@ -1,0 +1,13 @@
+template T {
+    class A {
+        i = 0;
+    }
+
+    class B {
+        j = 1; 
+    }
+}
+
+package P {
+    inst T { A -> B, B -> C };
+}

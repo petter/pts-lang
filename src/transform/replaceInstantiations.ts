@@ -2,6 +2,7 @@ import { ASTNode } from "../AST";
 import transform, { Transform } from "../transform";
 import { idTransform } from "../util";
 import getTemplates from "../util/getTemplates";
+import rename from "./rename";
 
 export default function replaceInstantiations(program: ASTNode) {
   const templates = getTemplates(program);
@@ -21,15 +22,20 @@ export default function replaceInstantiations(program: ASTNode) {
       res = transform(res, {
         inst_statement: (node, children) => {
           inst = true;
+
           const instId =
             children.find((child) => child.type === "identifier")?.text || "";
+          
+          console.log(children)
+
           const template = templates.find((t) => t.identifier === instId);
           if (template === undefined) {
             throw new Error("Instantiating undefined template, " + instId);
-            return idTransform(node, children);
-          } else {
-            return template.body;
           }
+
+          
+          const renamedBody = rename(new Map(), template.body);
+          return renamedBody;
         },
         default: idTransform,
       }) as ASTNode;
