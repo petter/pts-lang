@@ -1,1 +1,6 @@
- class A { i = 0 ; } class B { j = 1 ; }
+class A {
+  i = 0;
+}
+class B {
+  j = 1;
+}
