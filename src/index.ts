@@ -13,7 +13,7 @@ const parser = new Parser();
 parser.setLanguage(PTS);
 
 const content = fs.readFileSync(
-  "./examples/multiple-class-renames.pts",
+  "./examples/class-and-field-rename.pts",
   "utf-8"
 );
 

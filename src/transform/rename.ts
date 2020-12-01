@@ -1,5 +1,11 @@
 import { ASTNode } from "../AST";
 
-export default function rename(renamings: Map<String, String>, body : ASTNode[]) : ASTNode[] {
-    return body
+type Renaming = { old: string; new: string };
+type ClassRenaming = Renaming & { fields: Renaming[] };
+
+export default function rename(
+  renamings: ClassRenaming[],
+  body: ASTNode[]
+): ASTNode[] {
+  return body;
 }
