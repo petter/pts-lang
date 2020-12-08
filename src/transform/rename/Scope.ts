@@ -9,8 +9,14 @@ export default class Scope {
     }
 
     lookup(name : string) : undefined | Variable {
-        return this.variables.find(v => v.name === name)
+        return this.variables.find(v => v.origName === name)
             || this.parentScope?.lookup(name);
+    }
+
+    defineClass(name: string) : Variable {
+        const varDef = new Variable(name, undefined);
+        this.variables.push(varDef);
+        return varDef;
     }
 
     defineVariable(name : string, instanceOfName : string) : Variable {

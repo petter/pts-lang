@@ -7,7 +7,7 @@ import rename from "./rename";
 export default function replaceInstantiations(program: ASTNode) {
   const templates = getTemplates(program);
 
-  const replaceInst: Transform = (instNode, instChildren) => {
+  const replaceInst: Transform<ASTNode, ASTNode> = (instNode, instChildren) => {
     const identifier =
       instChildren.find((child) => child.type === "identifier")?.text || "";
 
@@ -19,20 +19,19 @@ export default function replaceInstantiations(program: ASTNode) {
     let inst = false;
     do {
       inst = false;
-      res = transform(res, {
+      res = transform<ASTNode, ASTNode>(res, {
         inst_statement: (_, children) => {
           inst = true;
 
           const instId =
             children.find((child) => child.type === "identifier")?.text || "";
-
+          console.log(children)
           const renamings =
             children
               .find((el) => el.type === "class_renamings")
               ?.children.filter((child) => child.type === "class_rename")
               .map((el) => {
                 const classRenaming = el.children[0];
-
                 const fieldRenamings = el.children
                   .find((maybeFields) => maybeFields.type === "field_renamings")
                   ?.children.filter(
@@ -55,6 +54,7 @@ export default function replaceInstantiations(program: ASTNode) {
             throw new Error("Instantiating undefined template, " + instId);
           }
 
+          console.log(renamings)
           const renamedBody = rename(renamings, template.body);
           return renamedBody;
         },
@@ -62,7 +62,10 @@ export default function replaceInstantiations(program: ASTNode) {
       }) as ASTNode;
     } while (inst);
 
-    return res;
+    
+    console.log("res")
+    console.log(res.children)
+    return res
   };
 
   return transform(program, {

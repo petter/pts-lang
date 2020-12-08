@@ -1,3 +1,3 @@
 import { Transform } from "../transform";
 
-export const idTransform: Transform = (node, children) => ({ ...node, children });
+export const idTransform: Transform<any, any> = (node, children) => ({ ...node, children: children.flat() });

@@ -3,8 +3,12 @@ template T {
         i = 0;
         x = 1;
     }
+
+    class X {
+        j = 2;
+    }
 }
 
 package P {
-    inst T { A -> B ( i -> j, x -> y ) };
+    inst T { A -> B ( i -> j, x -> y ), X -> Y };
 }

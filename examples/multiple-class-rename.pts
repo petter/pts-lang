@@ -1,10 +1,10 @@
 template T {
     class A {
-        i = 0;
+        i = 0; 
     }
 
     class B {
-        j = 1; 
+        j = 1;
     }
 }
 

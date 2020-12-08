@@ -1,1 +1,1 @@
- class A { i = 0 ; x = 1 ; }
+ class B { i = 0 ; } class C { j = 1 ; }

@@ -1,9 +1,8 @@
 import Parser from "tree-sitter";
 import fs from "fs";
 import { toAST, ASTNode } from "./AST";
-import transform, { Transformer, Transform } from "./transform";
+import transform, { Transformer } from "./transform";
 import replaceInstantiations from "./transform/replaceInstantiations";
-import getTemplates from "./util/getTemplates";
 import toTS from "./transform/toTS";
 
 // tslint:disable-next-line: no-var-requires
@@ -13,7 +12,7 @@ const parser = new Parser();
 parser.setLanguage(PTS);
 
 const content = fs.readFileSync(
-  "./examples/class-and-field-rename.pts",
+  "./examples/multiple-class-rename.pts",
   "utf-8"
 );
 
@@ -28,8 +27,7 @@ const sExprs = transform(ast, sExprTransformer);
 
 try {
   const inst = replaceInstantiations(ast);
-  const newTemplates = getTemplates(inst);
-  console.log(newTemplates.map((el) => el.body));
+  console.log(inst.children[1].children[2])
 
   fs.writeFileSync("out.ts", toTS(inst));
 } catch (e) {
