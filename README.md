@@ -1,7 +1,7 @@
 # pts
 
 - [x] Instantiating closed templates
-- [ ] Renaming classes
+- [x] Renaming classes
 - [ ] Renaming fields
 - [ ] Merging classes
 - [ ] Validating templates
