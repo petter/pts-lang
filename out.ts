@@ -1,1 +1,1 @@
- class B { i = 0 ; } class C { j = 1 ; }
+ class B { i = 0 ; } class C extends B { j = 1 ; constructor ( ) { this . i = 2 ; this . j = 3 ; } } class X { constructor ( ) { let a = new B ( ) this . a = new A ( ) ; this . i = this . a . i ; this . j = a . j ; } }

@@ -25,7 +25,6 @@ export default function replaceInstantiations(program: ASTNode) {
 
           const instId =
             children.find((child) => child.type === "identifier")?.text || "";
-          console.log(children)
           const renamings =
             children
               .find((el) => el.type === "class_renamings")
@@ -54,7 +53,6 @@ export default function replaceInstantiations(program: ASTNode) {
             throw new Error("Instantiating undefined template, " + instId);
           }
 
-          console.log(renamings)
           const renamedBody = rename(renamings, template.body);
           return renamedBody;
         },
@@ -63,8 +61,6 @@ export default function replaceInstantiations(program: ASTNode) {
     } while (inst);
 
     
-    console.log("res")
-    console.log(res.children)
     return res
   };
 

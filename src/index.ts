@@ -12,7 +12,7 @@ const parser = new Parser();
 parser.setLanguage(PTS);
 
 const content = fs.readFileSync(
-  "./examples/multiple-class-rename.pts",
+  "./examples/full-class-rename.pts",
   "utf-8"
 );
 
@@ -27,7 +27,6 @@ const sExprs = transform(ast, sExprTransformer);
 
 try {
   const inst = replaceInstantiations(ast);
-  console.log(inst.children[1].children[2])
 
   fs.writeFileSync("out.ts", toTS(inst));
 } catch (e) {

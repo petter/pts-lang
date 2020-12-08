@@ -1,6 +1,7 @@
 import transform from "..";
+import { idTransform } from "../../util";
 import Scope from "./Scope";
-import { ScopedAST } from "./toScopedAst";
+import toScopedAST, { ScopedAST } from "./toScopedAst";
 import Variable from "./Variable";
 
 function findLast<T>(elements: T[], check : (el : T) => boolean) : T | undefined {
@@ -16,7 +17,7 @@ function replace<T>(elements: T[], replaceWith : T, check : (el : T) => boolean)
 export type ScopedVariableAST = ScopedAST | {type: 'variable', origType: string, var: Variable, children: ScopedVariableAST[], scope: Scope};
 
 export default function transformVariableRefs(program: ScopedAST) : ScopedVariableAST {
-    return transform<ScopedAST, ScopedVariableAST>(program, {
+    const registerDecls = transform<ScopedAST, ScopedVariableAST>(program, {
         class_declaration: (classDeclNode, classDeclChildren) => {
             const tId = findLast(classDeclChildren, (c) => c.type === 'type_identifier') as ScopedAST
             const varDecl = classDeclNode.scope.defineClass(tId?.text || "");
@@ -32,9 +33,38 @@ export default function transformVariableRefs(program: ScopedAST) : ScopedVariab
                 children: replace(classDeclChildren, astVarNode, (el) => el === tId)
             } as ScopedVariableAST
         },
-        default: (node, children) => ({
-            ...node,
-            children
-        }) as ScopedVariableAST
+        default: idTransform
     }) as ScopedVariableAST;
+
+    const registerRefs = transform<ScopedVariableAST, ScopedVariableAST>(registerDecls, {
+        extends_clause: (node, children) => {
+            console.log(children)
+            const ids = children.filter(c => c.type === 'identifier' || c.type === 'type_identifier');
+            const newChildren = ids.reduce<ScopedVariableAST[]>((prev, _id) => {
+                const id = _id as ScopedAST
+                const decl = id.scope.lookup(id.text)
+
+                if(decl === undefined) {
+                    throw new Error(`Cannot extend undefined class, ${id.text}`);
+                }
+
+                const newId = {
+                    type: 'variable',
+                    origType: id.type,
+                    var: decl,
+                    children: [],
+                    scope: id.scope
+                } as ScopedVariableAST
+
+                return replace(prev, newId, (el) => el === _id);
+            }, children);
+            console.log(newChildren)
+            return {
+                ...node,
+                children: newChildren
+            } as ScopedVariableAST
+        },
+        default: idTransform
+    }) as ScopedVariableAST;
+    return registerRefs
 }

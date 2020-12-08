@@ -1,0 +1,27 @@
+template T {
+    class A {
+        i = 0;
+    }
+
+    class B extends A {
+        j = 1;
+        constructor() {
+            this.i = 2;
+            this.j = 3;
+        }
+
+    }
+
+    class X {
+        constructor() {
+            let a = new B()
+            this.a = new A();
+            this.i = this.a.i;
+            this.j  = a.j;
+        }
+    }
+}
+
+package P {
+    inst T { A -> B, B -> C };
+}
