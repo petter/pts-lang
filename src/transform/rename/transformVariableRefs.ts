@@ -64,6 +64,26 @@ export default function transformVariableRefs(program: ScopedAST) : ScopedVariab
                 children: newChildren
             } as ScopedVariableAST
         },
+        new_expression: (node, children) => {
+            const id = children.find(c => c.type === 'identifier') as ScopedAST;
+            const decl = id.scope.lookup(id.text);
+
+            if(decl === undefined) {
+                throw new Error(`Cannot instantiate undefined class, ${id.text}`);
+            }
+
+            const newId : ScopedVariableAST = {
+                type: 'variable',
+                origType: id.type,
+                var: decl,
+                children: [],
+                scope: id.scope
+            }
+            return {
+                ...node,
+                children: replace(children, newId, el => el === id)
+            } as ScopedVariableAST
+        },
         default: idTransform
     }) as ScopedVariableAST;
     return registerRefs
