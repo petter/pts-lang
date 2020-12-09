@@ -7,6 +7,7 @@ template T {
         j = 1;
         a = new A();
         constructor() {
+            super();
             this.i = 2;
             this.j = 3;
         }
@@ -14,12 +15,12 @@ template T {
     }
 
     class X {
+        a = new A();
+        i = this.a.i;
+        j = 0;
         constructor() {
-            let a = new B()
-            this.a = new A();
-            this.i = this.a.i;
-            this.j  = a.j;
-        }
+            const b = new B();
+            this.j = b.j;
     }
 }
 
