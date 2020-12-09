@@ -1,7 +1,7 @@
 import transform from "..";
 import { idTransform } from "../../util";
 import Scope from "./Scope";
-import toScopedAST, { ScopedAST } from "./toScopedAst";
+import { ScopedAST } from "./toScopedAst";
 import Variable from "./Variable";
 
 function findLast<T>(elements: T[], check : (el : T) => boolean) : T | undefined {
@@ -17,28 +17,52 @@ function replace<T>(elements: T[], replaceWith : T, check : (el : T) => boolean)
 export type ScopedVariableAST = ScopedAST | {type: 'variable', origType: string, var: Variable, children: ScopedVariableAST[], scope: Scope};
 
 export default function transformVariableRefs(program: ScopedAST) : ScopedVariableAST {
-    const registerDecls = transform<ScopedAST, ScopedVariableAST>(program, {
-        class_declaration: (classDeclNode, classDeclChildren) => {
-            const tId = findLast(classDeclChildren, (c) => c.type === 'type_identifier') as ScopedAST
-            const varDecl = classDeclNode.scope.defineClass(tId?.text || "");
+    const registerClassDecls = transform<ScopedAST, ScopedVariableAST>(program, {
+        class_declaration: (node, children) => {
+            const tId = findLast(children, (c) => c.type === 'type_identifier') as ScopedAST
+            const classScope = children.find(el => el.type === 'class_body')!.scope
+            const varDecl = node.scope.defineClass(tId?.text || "", classScope);
             const astVarNode = {
-                type: 'variable', 
+                type: 'variable',
                 origType: tId.type,
-                var: varDecl, 
-                children: [], 
-                scope: classDeclNode.scope
+                var: varDecl,
+                children: [],
+                scope: node.scope
             } as ScopedVariableAST;
             return {
-                ...classDeclNode,
-                children: replace(classDeclChildren, astVarNode, (el) => el === tId)
+                ...node,
+                children: replace(children, astVarNode, (el) => el === tId)
             } as ScopedVariableAST
         },
         default: idTransform
     }) as ScopedVariableAST;
 
+    const registerDecls = transform<ScopedVariableAST, ScopedVariableAST>(registerClassDecls, {
+        public_field_definition: (node, children) => {
+            const id = children.find(c => c.type === 'property_identifier') as ScopedAST;
+            const newExpr = children.find(c => c.type === 'new_expression')
+
+            let instanceOf : string | undefined;
+            if(newExpr !== undefined && newExpr.type === 'new_expression') {
+                const instId = newExpr.children.find(c => c.type === 'identifier') as ScopedAST;
+                instanceOf = instId.text;
+            }
+            const decl = {
+                type: 'variable',
+                origType: id.type,
+                var: id.scope.defineVariable(id.text, instanceOf),
+                children: [],
+                scope: node.scope
+            } as ScopedVariableAST
+            return {
+                ...node,
+                children: replace(children, decl, (c) => c === id)
+            } as ScopedVariableAST
+    },
+        default: idTransform
+    }) as ScopedVariableAST;
     const registerRefs = transform<ScopedVariableAST, ScopedVariableAST>(registerDecls, {
         extends_clause: (node, children) => {
-            console.log(children)
             const ids = children.filter(c => c.type === 'identifier' || c.type === 'type_identifier');
             const newChildren = ids.reduce<ScopedVariableAST[]>((prev, _id) => {
                 const id = _id as ScopedAST
@@ -58,7 +82,6 @@ export default function transformVariableRefs(program: ScopedAST) : ScopedVariab
 
                 return replace(prev, newId, (el) => el === _id);
             }, children);
-            console.log(newChildren)
             return {
                 ...node,
                 children: newChildren

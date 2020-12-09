@@ -19,7 +19,9 @@ export default function rename(
     const variableRefTransformedAST = transformVariableRefs(scopedAST);
     renamings.forEach((classRenaming) => {
         variableRefTransformedAST.scope.rename(classRenaming.old, classRenaming.new);
-        // TODO: rename fields
+        classRenaming.fields.forEach((fieldRenaming) =>
+            variableRefTransformedAST.scope.renameField(classRenaming.old, fieldRenaming.old, fieldRenaming.new)
+        );
     });
     const renamedAST = toOriginalAST(variableRefTransformedAST);
     return renamedAST.children;
