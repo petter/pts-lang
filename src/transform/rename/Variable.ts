@@ -1,12 +1,16 @@
+import Class from "./Class";
+
 export default class Variable {
     origName : string;
     name : string;
-    instanceOf : Variable | undefined;
+    instanceOf? : Class;
 
-    constructor(name: string, instanceOf : Variable | undefined) {
+    constructor(name: string, instanceOf? : Class) {
         this.name = name;
         this.origName = name;
         this.instanceOf = instanceOf;
+
+        if(instanceOf) instanceOf.addInstanceOfMe(this);
     }
 
     rename(newName: string) {

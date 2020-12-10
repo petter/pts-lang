@@ -1,6 +1,7 @@
 template T {
     class A {
         i = 0;
+        static k = this.i;
     }
 
     class B extends A {
@@ -18,6 +19,7 @@ template T {
         a = new A();
         i = this.a.i;
         j = 0;
+        k = A.k;
         constructor() {
             const b = new B();
             this.j = b.j;

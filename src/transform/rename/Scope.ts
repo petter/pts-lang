@@ -28,7 +28,7 @@ export default class Scope {
     }
 
     defineVariable(name : string, instanceOfName? : string) : Variable {
-        const instanceOf = instanceOfName ? this.lookup(instanceOfName) : undefined;
+        const instanceOf = instanceOfName ? this.lookupClass(instanceOfName) : undefined;
         const varDef = new Variable(name, instanceOf);
         this.variables.push(varDef);
         return varDef;
@@ -51,7 +51,7 @@ export default class Scope {
             throw new Error(`Class ${instanceOf} does not exist, and we can therefore not rename ${oldName} to ${newName}`);
         }
 
-        const fieldDecl = instanceOfClass.scope.lookup(oldName);
+        const fieldDecl = instanceOfClass.lookup(oldName);
         if(fieldDecl === undefined) {
             throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
         }
