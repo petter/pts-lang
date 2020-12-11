@@ -24,6 +24,7 @@ const sExprTransformer: Transformer<ASTNode, string> = {
   default: (node, children) => `${node.type} (${children.join(", ")})`,
 };
 const sExprs = transform(ast, sExprTransformer);
+console.log(sExprs);
 
 try {
   const inst = replaceInstantiations(ast);

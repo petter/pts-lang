@@ -192,7 +192,36 @@ export default function transformVariableRefs(program: ScopedAST) : ScopedVariab
             } else if(children[0].type === 'identifier') {
                 // a.i
                 // TODO: Handle this
-                return {...node, children} as ScopedVariableAST;
+                const memberOfId = children[0] as ScopedAST;
+                const memberId = children[2] as ScopedAST;
+
+                const memberOfVarDecl = node.scope.lookup(memberOfId.text);
+                if(memberOfVarDecl === undefined || memberOfVarDecl.instanceOf === undefined) {
+                    // I'm something that can not be renamed, i.e. console.log
+                    return {...node, children} as ScopedVariableAST;
+                }
+
+                const memberVarDecl = memberOfVarDecl.instanceOf.lookup(memberId.text);
+
+                const memberOfVarNode = {
+                    type: 'variable',
+                    origType: memberOfId.type,
+                    var: memberOfVarDecl,
+                    children: [],
+                    scope: node.scope
+                };
+                const memberVarNode = {
+                    type: 'variable',
+                    origType: memberId.type,
+                    var: memberVarDecl,
+                    children: [],
+                    scope: node.scope
+                };
+
+                return {
+                    ...node,
+                    children: [memberOfVarNode, children[1], memberVarNode]
+                } as ScopedVariableAST;
             } else {
                 throw new Error('Unhandled member_expression. children[0].type = ' + children[0].type);
             }

@@ -9,6 +9,7 @@ export default class Class extends Variable {
     constructor(name : string, scope : Scope) {
         super(name, undefined);
         this.scope = scope;
+        this.instanceOf = this;
     }
 
     lookup(name : string) : Variable | undefined {

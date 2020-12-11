@@ -15,7 +15,7 @@ class X {
     a = new B();
     i = this.a.x;
     j = 0;
-    k = A.k;
+    k = B.n;
     constructor() {
         const b = new C();
         this.j = b.j;
