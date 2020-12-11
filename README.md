@@ -5,9 +5,9 @@
   - [x] Rename class declarations
   - [x] Rename class heritage
   - [x] Rename class instantiations
-  - [ ] Rename member_expressions on static class fields (i.e. `A.k`)
+  - [x] Rename member_expressions on static class fields (i.e. `A.k`)
   - [ ] Rename other class references, i.e. as a type (Maybe enough to have another pass on `type_identifiers`)
-- [ ] Renaming fields
+- [x] Renaming fields
   - [x] Rename field declaration (public_field_definition)
   - [x] Rename `this.x` from same class (local member_expressions)
   - [x] Rename `this.x` from super class (member_expressions)
