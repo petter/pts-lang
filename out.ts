@@ -1,6 +1,6 @@
 class B {
     x = 0;
-    static k = this.x;
+    static n = this.x;
 }
 class C extends B {
     j = 1;
@@ -13,7 +13,7 @@ class C extends B {
 }
 class X {
     a = new B();
-    i = this.a.i;
+    i = this.a.x;
     j = 0;
     k = A.k;
     constructor() {

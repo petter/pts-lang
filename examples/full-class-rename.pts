@@ -27,5 +27,5 @@ template T {
 }
 
 package P {
-    inst T { A -> B (i -> x), B -> C };
+    inst T { A -> B (i -> x, k->n), B -> C };
 }

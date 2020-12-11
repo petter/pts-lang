@@ -30,6 +30,7 @@ export default class Scope {
     defineVariable(name : string, instanceOfName? : string) : Variable {
         const instanceOf = instanceOfName ? this.lookupClass(instanceOfName) : undefined;
         const varDef = new Variable(name, instanceOf);
+
         this.variables.push(varDef);
         return varDef;
     }

@@ -163,7 +163,32 @@ export default function transformVariableRefs(program: ScopedAST) : ScopedVariab
             } else if (children[0].type === 'member_expression') {
                 // this.a.i, a.i.j, etc
                 // TODO: Handle this
-                return {...node, children} as ScopedVariableAST;
+                const id = (children[2] as ScopedAST);
+                const memberOf = children[0].children[2] as unknown as VarNode;
+                const memberOfInstance = memberOf.var.instanceOf;
+                if(memberOfInstance === undefined) {
+                    // I'm a member of something we can not rename, i.e. object, console.log, etc.
+                    return {...node, children} as ScopedVariableAST;
+                }
+
+                const varDecl = memberOfInstance.lookup(id.text);
+
+                if (varDecl === undefined) {
+                    throw new Error(`${id.text} does not exist on class ${memberOfInstance.origName}`);
+                }
+
+                const newId : ScopedVariableAST = {
+                    type: 'variable',
+                    origType: id.type,
+                    var: varDecl,
+                    children: [],
+                    scope: id.scope
+                }
+
+                return {
+                    ...node,
+                    children: replace(children, newId, (el) => el === id)
+                } as ScopedVariableAST
             } else if(children[0].type === 'identifier') {
                 // a.i
                 // TODO: Handle this
