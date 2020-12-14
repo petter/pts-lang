@@ -2,18 +2,22 @@ import transform from "../../index";
 import { ASTNode } from "../../../AST";
 import Scope from "./Scope";
 
-export type ScopedAST = ASTNode & {scope: Scope};
+function setScope<Inp extends {children: Inp[]}>(node : Inp, scope : Scope) : Inp & {scope: Scope} {
+    return {
+        ...node,
+        children: node.children.map(c => setScope(c, scope)),
+        scope
+    };
+}
+
+export interface ScopedAST extends ASTNode {
+    scope: Scope;
+    children: ScopedAST[];
+}
 export default function toScopedAST(program: ASTNode) : ScopedAST {
     const rootScope = new Scope(undefined);
-    function setScope<Inp extends {children: Inp[]}>(node : Inp, scope : Scope) : Inp & {scope: Scope} {
-        return {
-            ...node,
-            children: node.children.map(c => setScope(c, scope)),
-            scope
-        };
-    }
 
-    const rootScopedAst = setScope(program, rootScope);
+    const rootScopedAst = setScope(program, rootScope) as ScopedAST;
 
     return transform<ScopedAST, ScopedAST>(rootScopedAst, (revisit) => {
 
@@ -22,7 +26,7 @@ export default function toScopedAST(program: ASTNode) : ScopedAST {
             const scopedChildren = revisit(node.children.map(child => setScope(child, scope))) as ScopedAST[];
             return {
                 ...node,
-                children: scopedChildren, 
+                children: scopedChildren,
                 scope,
             }
         }
@@ -31,7 +35,7 @@ export default function toScopedAST(program: ASTNode) : ScopedAST {
         class_body: makeScope,
 
         statement_block: makeScope,
-        enum_body: makeScope, 
+        enum_body: makeScope,
         if_statement: makeScope,
         else_statement: makeScope,
         for_statement: makeScope,
