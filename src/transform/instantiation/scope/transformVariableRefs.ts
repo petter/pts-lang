@@ -1,5 +1,5 @@
-import transform from "..";
-import { idTransform } from "../../util";
+import transform from "../../index";
+import { idTransform } from "../../../util";
 import Scope from "./Scope";
 import { ScopedAST } from "./toScopedAst";
 import Variable from "./Variable";

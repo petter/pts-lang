@@ -2,7 +2,7 @@ import Parser from "tree-sitter";
 import fs from "fs";
 import { toAST, ASTNode } from "./AST";
 import transform, { Transformer } from "./transform";
-import replaceInstantiations from "./transform/replaceInstantiations";
+import replaceInstantiations from "./transform/instantiation/replaceInstantiations";
 import toTS from "./transform/toTS";
 
 // tslint:disable-next-line: no-var-requires

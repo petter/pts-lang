@@ -1,0 +1,14 @@
+template T {
+    class A {
+        i = 0;
+        static n = 0
+    }
+
+    class B extend A {
+        n = this.i;
+    }
+}
+
+package P {
+    inst T {A -> B (i -> j, n -> k), B->C};
+}

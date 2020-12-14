@@ -1,8 +1,9 @@
-import { ASTNode } from "../AST";
-import transform, { Transform } from "../transform";
-import { idTransform } from "../util";
-import getTemplates from "../util/getTemplates";
+import { ASTNode } from "../../AST";
+import transform, { Transform } from "../index";
+import { idTransform } from "../../util";
+import getTemplates from "../../util/getTemplates";
 import rename from "./rename";
+import toOriginalAST from "./toOriginalAST";
 
 export default function replaceInstantiations(program: ASTNode) {
   const templates = getTemplates(program);
@@ -54,14 +55,14 @@ export default function replaceInstantiations(program: ASTNode) {
           }
 
           const renamedBody = rename(renamings, template.body);
-          return renamedBody;
+          return toOriginalAST(renamedBody)
         },
         default: idTransform,
       }) as ASTNode;
     } while (inst);
 
-    
-    return res
+
+    return res;
   };
 
   return transform(program, {

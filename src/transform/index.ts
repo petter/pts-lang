@@ -1,4 +1,3 @@
-import { ASTNode } from "../AST";
 
 type BaseInput = { type: string; children: BaseInput[] };
 export type Transform<

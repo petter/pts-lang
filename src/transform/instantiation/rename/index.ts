@@ -1,7 +1,6 @@
-import { ASTNode } from "../../AST";
-import toOriginalAST from "./toOriginalAST";
-import toScopedAST from "./toScopedAst";
-import transformVariableRefs from "./transformVariableRefs";
+import { ASTNode } from "../../../AST";
+import toScopedAST from "../scope/toScopedAst";
+import transformVariableRefs, {ScopedVariableAST} from "../scope/transformVariableRefs";
 
 type Renaming = { old: string; new: string };
 type ClassRenaming = Renaming & { fields: Renaming[] };
@@ -9,7 +8,7 @@ type ClassRenaming = Renaming & { fields: Renaming[] };
 export default function rename(
     renamings: ClassRenaming[],
     body: ASTNode[]
-): ASTNode[] {
+): ScopedVariableAST[] {
     const root = {
         type: 'temp_root',
         children: body,
@@ -23,8 +22,7 @@ export default function rename(
             variableRefTransformedAST.scope.renameField(classRenaming.old, fieldRenaming.old, fieldRenaming.new)
         );
     });
-    const renamedAST = toOriginalAST(variableRefTransformedAST);
-    return renamedAST.children;
+    return variableRefTransformedAST.children as ScopedVariableAST[];
 }
 
 

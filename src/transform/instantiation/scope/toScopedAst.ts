@@ -1,5 +1,5 @@
-import transform from "..";
-import { ASTNode } from "../../AST";
+import transform from "../../index";
+import { ASTNode } from "../../../AST";
 import Scope from "./Scope";
 
 export type ScopedAST = ASTNode & {scope: Scope};

@@ -1,9 +1,13 @@
-import transform from "..";
+import transform from "../index";
 import { ASTNode } from "../../AST";
-import { ScopedVariableAST } from "./transformVariableRefs";
-import Variable from "./Variable";
+import { ScopedVariableAST } from "./scope/transformVariableRefs";
+import Variable from "./scope/Variable";
 
-export default function toOriginalAST(program: ScopedVariableAST) : ASTNode {
+export default function toOriginalAST(program: ScopedVariableAST | ScopedVariableAST[]) : ASTNode | ASTNode[] {
+    if(Array.isArray(program)) {
+       return program.map(toOriginalAST) as ASTNode[];
+    }
+
     return transform<ScopedVariableAST, ASTNode>(program, {
         variable: (node : any, children) => ({
             type: node.origType,
