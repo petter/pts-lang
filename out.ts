@@ -1,6 +1,10 @@
 class B {
     x = 0;
+    s = "prøve";
     static n = this.x;
+    constructor() {
+        console.log("test");
+    }
 }
 class C extends B {
     j = 1;

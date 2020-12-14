@@ -11,6 +11,7 @@ export default function toTS(program: ASTNode) {
         program: (_, children) => children.join('\n'),
         class_body: (_, children) => children.join('\n'),
         statement_block: (_, children) => children.join('\n'),
+        string: (node, _) => node.text,
         default: (node, children) => {
             if (children.length === 0) {
                 return node.text;
