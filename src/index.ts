@@ -4,6 +4,7 @@ import { toAST, ASTNode } from "./AST";
 import transform, { Transformer } from "./transform";
 import replaceInstantiations from "./transform/instantiation/replaceInstantiations";
 import toTS from "./transform/toTS";
+import toScopedAST from "./transform/instantiation/scope/toScopedAst";
 
 // tslint:disable-next-line: no-var-requires
 const PTS = require("tree-sitter-pts");

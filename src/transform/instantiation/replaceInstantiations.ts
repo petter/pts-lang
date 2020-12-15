@@ -1,21 +1,13 @@
-import { ASTNode } from "../../AST";
-import transform, { Transform } from "../index";
-import { idTransform } from "../../util";
+import {ASTNode} from "../../AST";
+import transform, {Transform} from "../index";
+import {idTransform} from "../../util";
 import getTemplates from "../../util/getTemplates";
 import rename from "./rename";
-import toOriginalAST from "./toOriginalAST";
+import toScopedAST, {ScopedAST} from "./scope/toScopedAst";
 
-export default function replaceInstantiations(program: ASTNode) {
+export default function replaceInstantiations(program: ASTNode) : ASTNode {
   const templates = getTemplates(program);
-
   const replaceInst: Transform<ASTNode, ASTNode> = (instNode, instChildren) => {
-    const identifier =
-      instChildren.find((child) => child.type === "identifier")?.text || "";
-
-    if (templates.find((el) => identifier === el.identifier)?.closed) {
-      return idTransform(instNode, instChildren);
-    }
-
     let res: ASTNode | ASTNode[] = { ...instNode, children: instChildren };
     let inst = false;
     do {
@@ -25,7 +17,7 @@ export default function replaceInstantiations(program: ASTNode) {
           inst = true;
 
           const instId =
-            children.find((child) => child.type === "identifier")?.text || "";
+              children.find((child) => child.type === "identifier")?.text || "";
           const renamings =
             children
               .find((el) => el.type === "class_renamings")
@@ -53,12 +45,10 @@ export default function replaceInstantiations(program: ASTNode) {
           if (template === undefined) {
             throw new Error("Instantiating undefined template, " + instId);
           }
-
-          const renamedBody = rename(renamings, template.body);
-          return toOriginalAST(renamedBody)
+          return rename(renamings, template.body);
         },
         default: idTransform,
-      }) as ASTNode;
+      });
     } while (inst);
 
 
@@ -69,5 +59,5 @@ export default function replaceInstantiations(program: ASTNode) {
     template_declaration: replaceInst,
     package_declaration: replaceInst,
     default: idTransform,
-  }) as ASTNode;
+  });
 }

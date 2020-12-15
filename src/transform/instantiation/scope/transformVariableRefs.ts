@@ -15,7 +15,7 @@ function replace<T>(elements: T[], replaceWith : T, check : (el : T) => boolean)
     return elements.map(el => check(el) ? replaceWith : el);
 }
 
-type VarNode = {type: 'variable', origType: string, var: Variable, children: ScopedVariableAST[], scope: Scope};
+export type VarNode = {type: 'variable', origType: string, var: Variable, children: ScopedVariableAST[], scope: Scope};
 export type ScopedVariableAST = ScopedAST | VarNode;
 
 export default function transformVariableRefs(program: ScopedAST) : ScopedVariableAST {
@@ -49,7 +49,6 @@ export default function transformVariableRefs(program: ScopedAST) : ScopedVariab
             const superClass = heritage?.map((el) => el.var).find(el => el instanceof Class) as Class | undefined;
             if(superClass !== undefined) {
                 cl.addSuperClass(superClass);
-                console.log(cl, superClass)
             }
 
             return {...node, children} as ScopedVariableAST;

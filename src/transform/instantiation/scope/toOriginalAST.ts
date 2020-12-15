@@ -1,7 +1,7 @@
-import transform from "../index";
-import { ASTNode } from "../../AST";
-import { ScopedVariableAST } from "./scope/transformVariableRefs";
-import Variable from "./scope/Variable";
+import transform from "../../index";
+import { ASTNode } from "../../../AST";
+import { ScopedVariableAST } from "./transformVariableRefs";
+import Variable from "./Variable";
 
 export default function toOriginalAST(program: ScopedVariableAST | ScopedVariableAST[]) : ASTNode | ASTNode[] {
     if(Array.isArray(program)) {
