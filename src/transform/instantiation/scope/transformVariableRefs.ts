@@ -1,5 +1,5 @@
 import transform from "../../index";
-import { idTransform } from "../../../util";
+import {idTransform, replace} from "../../../util";
 import Scope from "./Scope";
 import { ScopedAST } from "./toScopedAst";
 import Variable from "./Variable";
@@ -9,10 +9,6 @@ function findLast<T>(elements: T[], check : (el : T) => boolean) : T | undefined
     const ts = elements.filter(check)
     if(ts.length === 0) return undefined;
     return ts[ts.length - 1]
-}
-
-function replace<T>(elements: T[], replaceWith : T, check : (el : T) => boolean) : T[] {
-    return elements.map(el => check(el) ? replaceWith : el);
 }
 
 export type VarNode = {type: 'variable', origType: string, var: Variable, children: ScopedVariableAST[], scope: Scope};
