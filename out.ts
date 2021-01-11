@@ -1,8 +1,8 @@
-class B {
+class A {
     i = 0;
     j = 0;
     j = 0;
 }
-class B {
+class A {
     j = 0;
 }

@@ -14,7 +14,8 @@ const parser = new Parser();
 parser.setLanguage(PTS);
 
 const content = fs.readFileSync(
-  "./examples/nested-class-merge-rename.pts",
+  "./examples/simple-class-merge.pts",
+  /* "./examples/nested-class-merge-rename.pts", */
   "utf-8"
 );
 
