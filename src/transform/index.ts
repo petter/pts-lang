@@ -36,3 +36,5 @@ export default function transform<
     transformedChildren
   );
 }
+
+export const EMPTY_NODE = [];

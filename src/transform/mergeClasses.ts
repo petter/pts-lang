@@ -1,5 +1,5 @@
 import {ASTNode} from "../AST";
-import transform from "./index";
+import transform, {EMPTY_NODE} from "./index";
 import {idTransform} from "../util";
 import _ from 'lodash';
 
@@ -33,7 +33,7 @@ function replaceClassDeclsWithMergedClasses(body: ASTNode[], mergedClasses : AST
         class_declaration: (node, children) => {
             const id = classDeclId(node);
             if(hasVisited.includes(id)) {
-                return idTransform(node, children);
+                return EMPTY_NODE;
             }
             hasVisited.push(id)
 
