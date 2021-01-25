@@ -22,12 +22,14 @@
     "lodash": "^4.17.20",
     "prettier": "^2.2.1",
     "tree-sitter": "^0.17.1",
-    "tree-sitter-pts": "git+ssh://git@github.com:petter/tree-sitter-pts.git"
+    "tree-sitter-pts": "git+ssh://git@github.com:petter/tree-sitter-pts.git",
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.165",
     "@types/node": "^14.14.6",
     "@types/prettier": "^2.1.5",
+    "@types/yargs": "^15.0.12",
     "nodemon": "^2.0.6",
     "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",
