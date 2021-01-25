@@ -35,7 +35,6 @@ export default function transpile(sourceCode: string, _options: Options) {
         emitFile: true,
         ..._.omitBy(_options, (field) => field === undefined),
     }
-    console.log(options)
 
     const parseTree = parser.parse(sourceCode);
 
@@ -45,8 +44,7 @@ export default function transpile(sourceCode: string, _options: Options) {
         default: (node, children) => `${node.type} (${children.join(", ")})`,
     };
     const sExprs = transform(ast, sExprTransformer);
-    console.log(sExprs);
-
+    if(options.verbose) console.log(sExprs)
 
     try {
         const inst = replaceInstantiations(ast);
@@ -54,7 +52,6 @@ export default function transpile(sourceCode: string, _options: Options) {
 
         if (options.emitFile) {
             const outputFile = options.output + (options.emitFormat === 'js' ? '.js' : '.ts')
-            console.log(outputFile)
             fs.writeFileSync(outputFile, outputContent);
         } else {
             return outputContent;
