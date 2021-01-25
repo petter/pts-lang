@@ -1,6 +1,6 @@
 template T1 {
     class A {
-        i = 0;
+        i : number = 0;
     }
 }
 
