@@ -58,7 +58,8 @@ export default function transpile(sourceCode: string, _options: Options) {
         }
     } catch (e) {
         console.error(e);
-        process.exit(1);
+        throw e;
+        if(require.main === module) process.exit(1);
     }
 }
 

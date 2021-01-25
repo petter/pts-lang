@@ -1,16 +1,30 @@
 const transpile = require('../build').default
 
-it('Transpiles closed package to the body of the package', () => {
+it('Correctly merges the bodies of the two templates', () => {
     const program = `
-package P {
+template T1 {
     class A {
         i = 0;
     }
+}
+
+template T2 {
+    inst T1;
+    class B {
+        j = 0;
+    }
+}
+
+package P {
+    inst T2;
 }
 `
 
     const expected = `class A {
     i = 0;
+}
+class B {
+    j = 0;
 }
 `
     const result = transpile(program, {emitFile: false, emitFormat: 'ts' });

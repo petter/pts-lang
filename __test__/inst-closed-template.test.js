@@ -1,11 +1,15 @@
 const transpile = require('../build').default
 
-it('Transpiles closed package to the body of the package', () => {
+it('Transpiles instantiation of closed-template to the body of the closed template', () => {
     const program = `
-package P {
+template T {
     class A {
         i = 0;
     }
+}
+
+package P {
+    inst T;
 }
 `
 

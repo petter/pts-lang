@@ -73,7 +73,9 @@ function transpile(sourceCode, _options) {
     }
     catch (e) {
         console.error(e);
-        process.exit(1);
+        throw e;
+        if (require.main === module)
+            process.exit(1);
     }
 }
 exports.default = transpile;

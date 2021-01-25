@@ -1,15 +1,19 @@
 const transpile = require('../build').default
 
-it('Transpiles closed package to the body of the package', () => {
+it('Renames class A to B', () => {
     const program = `
-package P {
+template T {
     class A {
         i = 0;
     }
 }
+
+package P {
+    inst T { A -> B };
+}
 `
 
-    const expected = `class A {
+    const expected = `class B {
     i = 0;
 }
 `
