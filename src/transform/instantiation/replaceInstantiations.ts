@@ -1,13 +1,14 @@
 import {ASTNode} from "../../AST";
-import transform, {Transform} from "../index";
-import {idTransform} from "../../util";
+import transform, {NodeTransform} from "../index";
+import {identifierIs, idTransform, typeIs} from "../../util";
 import getTemplates from "../../util/getTemplates";
 import rename from "./rename";
 import mergeClasses from "../mergeClasses";
 
+
 export default function replaceInstantiations(program: ASTNode) : ASTNode {
     const templates = getTemplates(program);
-    const replaceInst: Transform<ASTNode, ASTNode> = (instNode, instChildren) => {
+    const replaceInst: NodeTransform<ASTNode, ASTNode> = (instNode, instChildren) => {
         let res: ASTNode = { ...instNode, children: instChildren };
         let inst = false;
         do {
@@ -34,33 +35,36 @@ export default function replaceInstantiations(program: ASTNode) : ASTNode {
 
 const instTransformer = (_ : ASTNode, children : ASTNode[], templates : {identifier: string, body: ASTNode[], closed: boolean}[]) : ASTNode[] => {
     const instId =
-        children.find((child) => child.type === "identifier")?.text || "";
+        children.find(typeIs('identifier'))?.text || "";
     const renamings =
         children
-            .find((el) => el.type === "class_renamings")
-            ?.children.filter((child) => child.type === "class_rename")
-            .map((el) => {
-                const classRenaming = el.children[0];
-                const fieldRenamings = el.children
-                    .find((maybeFields) => maybeFields.type === "field_renamings")
-                    ?.children.filter(
-                        (maybeRename) => maybeRename.type === "rename"
-                    )
-                    .map((renaming) => ({
-                        old: renaming.children[0].text,
-                        new: renaming.children[2].text,
-                    }));
+            .find(typeIs("class_renamings"))
+            ?.children.filter(typeIs('class_rename'))
+            .map(extractRenamings) || [];
 
-                return {
-                    old: classRenaming.children[0].text,
-                    new: classRenaming.children[2].text,
-                    fields: fieldRenamings || [],
-                };
-            }) || [];
-
-    const template = templates.find((t) => t.identifier === instId);
+    const template = templates.find(identifierIs(instId));
     if (template === undefined) {
-        throw new Error("Instantiating undefined template, " + instId);
+        throw new Error("Instantiating undefined template: " + instId);
     }
     return rename(renamings, template.body);
 }
+
+function extractRenamings(classRenameNode: ASTNode) {
+    const classRenaming = classRenameNode.children[0];
+    const fieldRenamings = classRenameNode.children
+        .find(typeIs('field_renamings'))
+        ?.children.filter(typeIs('rename'))
+        .map(makeRenameObject);
+
+    return {
+        ...makeRenameObject(classRenaming),
+        fields: fieldRenamings || [],
+    };
+}
+
+const RENAMING_OLD = 0;
+const RENAMING_NEW = 2;
+const makeRenameObject = (renamingNode: ASTNode) => ({
+    old: renamingNode.children[RENAMING_OLD].text,
+    new: renamingNode.children[RENAMING_NEW].text
+})

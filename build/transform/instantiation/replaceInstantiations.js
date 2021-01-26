@@ -46,25 +46,25 @@ function replaceInstantiations(program) {
 exports.default = replaceInstantiations;
 var instTransformer = function (_, children, templates) {
     var _a, _b;
-    var instId = ((_a = children.find(function (child) { return child.type === "identifier"; })) === null || _a === void 0 ? void 0 : _a.text) || "";
+    var instId = ((_a = children.find(util_1.typeIs('identifier'))) === null || _a === void 0 ? void 0 : _a.text) || "";
     var renamings = ((_b = children
-        .find(function (el) { return el.type === "class_renamings"; })) === null || _b === void 0 ? void 0 : _b.children.filter(function (child) { return child.type === "class_rename"; }).map(function (el) {
-        var _a;
-        var classRenaming = el.children[0];
-        var fieldRenamings = (_a = el.children
-            .find(function (maybeFields) { return maybeFields.type === "field_renamings"; })) === null || _a === void 0 ? void 0 : _a.children.filter(function (maybeRename) { return maybeRename.type === "rename"; }).map(function (renaming) { return ({
-            old: renaming.children[0].text,
-            new: renaming.children[2].text,
-        }); });
-        return {
-            old: classRenaming.children[0].text,
-            new: classRenaming.children[2].text,
-            fields: fieldRenamings || [],
-        };
-    })) || [];
-    var template = templates.find(function (t) { return t.identifier === instId; });
+        .find(util_1.typeIs("class_renamings"))) === null || _b === void 0 ? void 0 : _b.children.filter(util_1.typeIs('class_rename')).map(extractRenamings)) || [];
+    var template = templates.find(util_1.identifierIs(instId));
     if (template === undefined) {
-        throw new Error("Instantiating undefined template, " + instId);
+        throw new Error("Instantiating undefined template: " + instId);
     }
     return rename_1.default(renamings, template.body);
 };
+function extractRenamings(classRenameNode) {
+    var _a;
+    var classRenaming = classRenameNode.children[0];
+    var fieldRenamings = (_a = classRenameNode.children
+        .find(util_1.typeIs('field_renamings'))) === null || _a === void 0 ? void 0 : _a.children.filter(util_1.typeIs('rename')).map(makeRenameObject);
+    return __assign(__assign({}, makeRenameObject(classRenaming)), { fields: fieldRenamings || [] });
+}
+var RENAMING_OLD = 0;
+var RENAMING_NEW = 2;
+var makeRenameObject = function (renamingNode) { return ({
+    old: renamingNode.children[RENAMING_OLD].text,
+    new: renamingNode.children[RENAMING_NEW].text
+}); };

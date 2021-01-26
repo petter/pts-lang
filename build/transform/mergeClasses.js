@@ -39,19 +39,23 @@ function mergeClasses(program) {
             var classes = children.filter(function (c) { return c.type === 'class_declaration'; });
             // TODO: Check if two classes can be merged (have different heritage?)
             var classGroups = lodash_1.default.groupBy(classes, classDeclId);
-            var mergedClasses = Object.values(classGroups).map(function (clg) {
-                var bodies = clg.map(function (n) { return n.children.filter(function (el) { return el.type === 'class_body'; }).flatMap(function (el) { return el.children; }); });
-                var mergedBodies = __spreadArrays([bodies[0][0]], bodies.reduce(function (prev, cur) { return prev.concat(cur.slice(1, -1)); }, []), [bodies[0][bodies[0].length - 1]]);
-                var resultClass = clg[0];
-                resultClass.children.find(function (el) { return el.type === 'class_body'; }).children = mergedBodies;
-                return resultClass;
-            });
+            var mergedClasses = mergeClassGroups(classGroups);
             return util_1.idTransform(node, replaceClassDeclsWithMergedClasses(children, mergedClasses));
         },
         default: util_1.idTransform
     });
 }
 exports.default = mergeClasses;
+function mergeClassGroups(classGroups) {
+    return Object.values(classGroups).map(mergeClassesInGroups);
+}
+function mergeClassesInGroups(classGroup) {
+    var bodies = classGroup.map(function (n) { return n.children.filter(function (el) { return el.type === 'class_body'; }).flatMap(function (el) { return el.children; }); });
+    var mergedBodies = __spreadArrays([bodies[0][0]], bodies.reduce(function (prev, cur) { return prev.concat(cur.slice(1, -1)); }, []), [bodies[0][bodies[0].length - 1]]);
+    var resultClass = classGroup[0];
+    resultClass.children.find(function (el) { return el.type === 'class_body'; }).children = mergedBodies;
+    return resultClass;
+}
 function replaceClassDeclsWithMergedClasses(body, mergedClasses) {
     var hasVisited = [];
     return index_1.default(body, {

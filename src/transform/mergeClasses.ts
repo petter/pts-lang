@@ -13,18 +13,24 @@ export default function mergeClasses(program: ASTNode) : ASTNode {
             // TODO: Check if two classes can be merged (have different heritage?)
 
             const classGroups = _.groupBy<ASTNode>(classes, classDeclId)
-            const mergedClasses = Object.values(classGroups).map(clg => {
-                const bodies = clg.map(n => n.children.filter(el => el.type === 'class_body').flatMap(el => el.children));
-                const mergedBodies = [bodies[0][0], ...bodies.reduce((prev, cur) => prev.concat(cur.slice(1, -1)), []) , bodies[0][bodies[0].length - 1]]
-
-                const resultClass = clg[0]
-                resultClass.children.find(el => el.type === 'class_body')!.children = mergedBodies;
-                return resultClass;
-            });
+            const mergedClasses = mergeClassGroups(classGroups);
             return idTransform(node, replaceClassDeclsWithMergedClasses(children, mergedClasses));
         },
         default: idTransform
     }) as ASTNode;
+}
+
+function mergeClassGroups(classGroups : _.Dictionary<ASTNode[]>) {
+    return Object.values(classGroups).map(mergeClassesInGroups);
+}
+
+function mergeClassesInGroups(classGroup : ASTNode[]) {
+    const bodies = classGroup.map(n => n.children.filter(el => el.type === 'class_body').flatMap(el => el.children));
+    const mergedBodies = [bodies[0][0], ...bodies.reduce((prev, cur) => prev.concat(cur.slice(1, -1)), []) , bodies[0][bodies[0].length - 1]]
+
+    const resultClass = classGroup[0]
+    resultClass.children.find(el => el.type === 'class_body')!.children = mergedBodies;
+    return resultClass;
 }
 
 function replaceClassDeclsWithMergedClasses(body: ASTNode[], mergedClasses : ASTNode[]) {

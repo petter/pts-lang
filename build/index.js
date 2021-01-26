@@ -54,12 +54,8 @@ function transpile(sourceCode, _options) {
     var options = __assign({ emitFormat: 'js', verbose: false, output: 'out', emitFile: true }, lodash_1.default.omitBy(_options, function (field) { return field === undefined; }));
     var parseTree = parser.parse(sourceCode);
     var ast = AST_1.toAST(parseTree);
-    var sExprTransformer = {
-        default: function (node, children) { return node.type + " (" + children.join(", ") + ")"; },
-    };
-    var sExprs = transform_1.default(ast, sExprTransformer);
     if (options.verbose)
-        console.log(sExprs);
+        console.log(toSExpressions(ast));
     try {
         var inst = replaceInstantiations_1.default(ast);
         var outputContent = options.emitFormat === 'ts' ? toTS_1.default(inst) : ts.transpileModule(toTS_1.default(inst), { compilerOptions: { module: ts.ModuleKind.ES2020 } }).outputText;
@@ -81,8 +77,8 @@ function transpile(sourceCode, _options) {
 exports.default = transpile;
 function transpileFile(file, options) {
     var content = fs_1.default.readFileSync(file, "utf-8");
-    var optionalOutFileName = path_1.default.basename(file, '.pts');
-    return transpile(content, __assign(__assign({}, options), { output: options.output || optionalOutFileName }));
+    var backupFileName = path_1.default.basename(file, '.pts');
+    return transpile(content, __assign(__assign({}, options), { output: options.output || backupFileName }));
 }
 exports.transpileFile = transpileFile;
 if (require.main === module) {
@@ -112,4 +108,10 @@ if (require.main === module) {
     })
         .argv;
     transpileFile(argv.input, { verbose: argv.verbose, output: argv.output, emitFormat: argv.emitFormat });
+}
+function toSExpressions(ast) {
+    var sExprTransformer = {
+        default: function (node, children) { return node.type + " (" + children.join(", ") + ")"; },
+    };
+    var sExprs = transform_1.default(ast, sExprTransformer);
 }

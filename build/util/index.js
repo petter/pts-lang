@@ -11,10 +11,14 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.replace = exports.idTransform = void 0;
+exports.identifierIs = exports.typeIs = exports.replace = exports.idTransform = void 0;
 var idTransform = function (node, children) { return (__assign(__assign({}, node), { children: children.flat() })); };
 exports.idTransform = idTransform;
 function replace(elements, replaceWith, check) {
     return elements.map(function (el) { return check(el) ? replaceWith : el; });
 }
 exports.replace = replace;
+var typeIs = function (type) { return function (objectWithType) { return objectWithType.type === type; }; };
+exports.typeIs = typeIs;
+var identifierIs = function (identifier) { return function (objectWithIdentifier) { return objectWithIdentifier.identifier === identifier; }; };
+exports.identifierIs = identifierIs;

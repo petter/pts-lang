@@ -1,6 +1,6 @@
 
 type BaseInput = { type: string; children: BaseInput[] };
-export type Transform<
+export type NodeTransform<
   InputNode extends BaseInput,
   OutputNode
 > = (inp: InputNode, children: OutputNode[]) => OutputNode | OutputNode[];
@@ -8,8 +8,8 @@ export interface Transformer<
   InputNode extends BaseInput,
   OutputNode
 > {
-  [key: string]: Transform<InputNode, OutputNode>;
-  default: Transform<InputNode, OutputNode>;
+  [key: string]: NodeTransform<InputNode, OutputNode>;
+  default: NodeTransform<InputNode, OutputNode>;
 }
 export type Revisit<
   InputNode extends BaseInput,

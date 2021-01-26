@@ -40,11 +40,7 @@ export default function transpile(sourceCode: string, _options: Options) {
 
     const ast = toAST(parseTree);
 
-    const sExprTransformer: Transformer<ASTNode, string> = {
-        default: (node, children) => `${node.type} (${children.join(", ")})`,
-    };
-    const sExprs = transform(ast, sExprTransformer);
-    if(options.verbose) console.log(sExprs)
+    if(options.verbose) console.log(toSExpressions(ast));
 
     try {
         const inst = replaceInstantiations(ast);
@@ -63,10 +59,11 @@ export default function transpile(sourceCode: string, _options: Options) {
     }
 }
 
+
 export function transpileFile(file: string, options: Options) {
     const content = fs.readFileSync(file, "utf-8");
-    const optionalOutFileName = path.basename(file, '.pts');
-    return transpile(content, {...options, output: options.output || optionalOutFileName});
+    const backupFileName = path.basename(file, '.pts');
+    return transpile(content, {...options, output: options.output || backupFileName});
 }
 
 if (require.main === module) {
@@ -96,4 +93,11 @@ if (require.main === module) {
         })
         .argv
     transpileFile(argv.input, {verbose: argv.verbose, output: argv.output, emitFormat: argv.emitFormat as 'js' | 'ts'})
+}
+
+function toSExpressions(ast: ASTNode) {
+    const sExprTransformer: Transformer<ASTNode, string> = {
+        default: (node, children) => `${node.type} (${children.join(", ")})`,
+    };
+    const sExprs = transform(ast, sExprTransformer);
 }
