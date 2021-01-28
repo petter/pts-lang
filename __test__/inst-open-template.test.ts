@@ -1,6 +1,7 @@
-const transpile = require('../build').default
+import test from 'ava';
+import transpile from '../src';
 
-it('Correctly merges the bodies of the two templates', () => {
+test('Correctly merges the bodies of the two templates', (t) => {
     const program = `
 template T1 {
     class A {
@@ -27,7 +28,7 @@ class B {
     j = 0;
 }
 `
-    const result = transpile(program, {emitFile: false, emitFormat: 'ts' });
+    const result = transpile(program, {emitFile: false,targetLanguage: 'ts' });
 
-    expect(result).toBe(expected);
+    t.is(result, expected);
 })

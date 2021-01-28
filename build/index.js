@@ -51,27 +51,19 @@ var PTS = require("tree-sitter-pts");
 var parser = new tree_sitter_1.default();
 parser.setLanguage(PTS);
 function transpile(sourceCode, _options) {
-    var options = __assign({ emitFormat: 'js', verbose: false, output: 'out', emitFile: true }, lodash_1.default.omitBy(_options, function (field) { return field === undefined; }));
+    var options = __assign({ targetLanguage: 'js', verbose: false, output: 'out', emitFile: true }, lodash_1.default.omitBy(_options, function (field) { return field === undefined; }));
     var parseTree = parser.parse(sourceCode);
     var ast = AST_1.toAST(parseTree);
     if (options.verbose)
         console.log(toSExpressions(ast));
-    try {
-        var inst = replaceInstantiations_1.default(ast);
-        var outputContent = options.emitFormat === 'ts' ? toTS_1.default(inst) : ts.transpileModule(toTS_1.default(inst), { compilerOptions: { module: ts.ModuleKind.ES2020 } }).outputText;
-        if (options.emitFile) {
-            var outputFile = options.output + (options.emitFormat === 'js' ? '.js' : '.ts');
-            fs_1.default.writeFileSync(outputFile, outputContent);
-        }
-        else {
-            return outputContent;
-        }
+    var inst = replaceInstantiations_1.default(ast);
+    var outputContent = options.targetLanguage === 'ts' ? toTS_1.default(inst) : ts.transpileModule(toTS_1.default(inst), { compilerOptions: { module: ts.ModuleKind.ES2020 } }).outputText;
+    if (options.emitFile) {
+        var outputFile = options.output + (options.targetLanguage === 'js' ? '.js' : '.ts');
+        fs_1.default.writeFileSync(outputFile, outputContent);
     }
-    catch (e) {
-        console.error(e);
-        throw e;
-        if (require.main === module)
-            process.exit(1);
+    else {
+        return outputContent;
     }
 }
 exports.default = transpile;
@@ -100,14 +92,15 @@ if (require.main === module) {
         alias: 'v',
         description: 'Show extra information during transpilation'
     })
-        .option('emitFormat', {
+        .option('targetLanguage', {
+        alias: ['t', 'target'],
         choices: ['js', 'ts'],
         demandOption: false,
-        description: 'What format to transpile to',
+        description: 'Target language of the transpiler',
         default: 'js',
     })
         .argv;
-    transpileFile(argv.input, { verbose: argv.verbose, output: argv.output, emitFormat: argv.emitFormat });
+    transpileFile(argv.input, { verbose: argv.verbose, output: argv.output, targetLanguage: argv.targetLanguage });
 }
 function toSExpressions(ast) {
     var sExprTransformer = {

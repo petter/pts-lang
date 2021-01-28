@@ -18,10 +18,8 @@ const PTS = require("tree-sitter-pts");
 const parser = new Parser();
 parser.setLanguage(PTS);
 
-// "./examples/nested-class-merge-rename.pts";
-
 type Options = {
-    emitFormat?: 'ts' | 'js';
+    targetLanguage?: 'ts' | 'js';
     verbose?: boolean;
     output?: string | undefined;
     emitFile?: boolean;
@@ -29,7 +27,7 @@ type Options = {
 
 export default function transpile(sourceCode: string, _options: Options) {
     const options : Required<Options> = {
-        emitFormat: 'js',
+        targetLanguage: 'js',
         verbose: false,
         output: 'out',
         emitFile: true,
@@ -42,23 +40,16 @@ export default function transpile(sourceCode: string, _options: Options) {
 
     if(options.verbose) console.log(toSExpressions(ast));
 
-    try {
-        const inst = replaceInstantiations(ast);
-        const outputContent = options.emitFormat === 'ts' ? toTS(inst) : ts.transpileModule(toTS(inst), {compilerOptions: {module: ts.ModuleKind.ES2020}}).outputText
+    const inst = replaceInstantiations(ast);
+    const outputContent = options.targetLanguage === 'ts' ? toTS(inst) : ts.transpileModule(toTS(inst), {compilerOptions: {module: ts.ModuleKind.ES2020}}).outputText
 
-        if (options.emitFile) {
-            const outputFile = options.output + (options.emitFormat === 'js' ? '.js' : '.ts')
-            fs.writeFileSync(outputFile, outputContent);
-        } else {
-            return outputContent;
-        }
-    } catch (e) {
-        console.error(e);
-        throw e;
-        if(require.main === module) process.exit(1);
+    if (options.emitFile) {
+        const outputFile = options.output + (options.targetLanguage === 'js' ? '.js' : '.ts')
+        fs.writeFileSync(outputFile, outputContent);
+    } else {
+        return outputContent;
     }
 }
-
 
 export function transpileFile(file: string, options: Options) {
     const content = fs.readFileSync(file, "utf-8");
@@ -85,14 +76,15 @@ if (require.main === module) {
             alias: 'v',
             description: 'Show extra information during transpilation'
         })
-        .option('emitFormat', {
+        .option('targetLanguage', {
+            alias: ['t', 'target'],
             choices: ['js', 'ts'],
             demandOption: false,
-            description: 'What format to transpile to',
+            description: 'Target language of the transpiler',
             default: 'js',
         })
         .argv
-    transpileFile(argv.input, {verbose: argv.verbose, output: argv.output, emitFormat: argv.emitFormat as 'js' | 'ts'})
+    transpileFile(argv.input, {verbose: argv.verbose, output: argv.output, targetLanguage: argv.targetLanguage as 'js' | 'ts'})
 }
 
 function toSExpressions(ast: ASTNode) {

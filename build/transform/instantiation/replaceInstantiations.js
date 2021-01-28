@@ -19,31 +19,27 @@ var util_1 = require("../../util");
 var getTemplates_1 = __importDefault(require("../../util/getTemplates"));
 var rename_1 = __importDefault(require("./rename"));
 var mergeClasses_1 = __importDefault(require("../mergeClasses"));
-function replaceInstantiations(program) {
-    var templates = getTemplates_1.default(program);
-    var replaceInst = function (instNode, instChildren) {
-        var res = __assign(__assign({}, instNode), { children: instChildren });
-        var inst = false;
-        do {
-            inst = false;
-            res = index_1.default(res, {
-                inst_statement: function (node, children) {
-                    inst = true;
-                    return instTransformer(node, children, templates);
-                },
-                default: util_1.idTransform,
-            });
-            res = mergeClasses_1.default(res);
-        } while (inst);
-        return res;
-    };
-    return index_1.default(program, {
-        template_declaration: replaceInst,
-        package_declaration: replaceInst,
-        default: util_1.idTransform,
-    });
+function replaceInstantiations(program, _templates) {
+    var templates = _templates || getTemplates_1.default(program);
+    var replaceInstTransformer = makeReplaceInstTransformer(templates);
+    return transformInst(program, replaceInstTransformer);
 }
 exports.default = replaceInstantiations;
+var makeReplaceInstTransformer = function (templates) { return function (instNode, instChildren) {
+    var ast = __assign(__assign({}, instNode), { children: instChildren });
+    var instReplacedAst = index_1.default(ast, {
+        inst_statement: function (node, children) {
+            return instTransformer(node, children, templates);
+        },
+        default: util_1.idTransform,
+    });
+    return mergeClasses_1.default(instReplacedAst);
+}; };
+var transformInst = function (node, replaceInstTransformer) { return index_1.default(node, {
+    template_declaration: replaceInstTransformer,
+    package_declaration: replaceInstTransformer,
+    default: util_1.idTransform,
+}); };
 var instTransformer = function (_, children, templates) {
     var _a, _b;
     var instId = ((_a = children.find(util_1.typeIs('identifier'))) === null || _a === void 0 ? void 0 : _a.text) || "";
@@ -52,6 +48,10 @@ var instTransformer = function (_, children, templates) {
     var template = templates.find(util_1.identifierIs(instId));
     if (template === undefined) {
         throw new Error("Instantiating undefined template: " + instId);
+    }
+    var templateBody = template.body;
+    if (!template.isClosed) {
+        templateBody = replaceInstantiations({ children: template.body, type: 'temp', text: '' }, templates).children;
     }
     return rename_1.default(renamings, template.body);
 };

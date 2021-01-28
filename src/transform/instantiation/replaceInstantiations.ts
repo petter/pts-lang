@@ -1,39 +1,37 @@
 import {ASTNode} from "../../AST";
 import transform, {NodeTransform} from "../index";
 import {identifierIs, idTransform, typeIs} from "../../util";
-import getTemplates from "../../util/getTemplates";
+import getTemplates, {Template} from "../../util/getTemplates";
 import rename from "./rename";
 import mergeClasses from "../mergeClasses";
 
 
-export default function replaceInstantiations(program: ASTNode) : ASTNode {
-    const templates = getTemplates(program);
-    const replaceInst: NodeTransform<ASTNode, ASTNode> = (instNode, instChildren) => {
-        let res: ASTNode = { ...instNode, children: instChildren };
-        let inst = false;
-        do {
-            inst = false;
-            res = transform<ASTNode, ASTNode>(res, {
-                inst_statement: (node, children) => {
-                    inst = true;
-                    return instTransformer(node, children, templates)
-                },
-                default: idTransform,
-            }) as ASTNode;
-            res = mergeClasses(res);
-        } while (inst);
-
-        return res;
-    };
-
-    return transform(program, {
-        template_declaration: replaceInst,
-        package_declaration: replaceInst,
-        default: idTransform,
-    });
+export default function replaceInstantiations(program: ASTNode, _templates?: Template[]) : ASTNode {
+    const templates = _templates || getTemplates(program);
+    const replaceInstTransformer = makeReplaceInstTransformer(templates)
+    return transformInst(program, replaceInstTransformer);
 }
 
-const instTransformer = (_ : ASTNode, children : ASTNode[], templates : {identifier: string, body: ASTNode[], closed: boolean}[]) : ASTNode[] => {
+const makeReplaceInstTransformer = (templates: Template[]) : NodeTransform<ASTNode, ASTNode> => (instNode, instChildren) => {
+    const ast = { ...instNode, children: instChildren };
+    const instReplacedAst = transform<ASTNode, ASTNode>(ast, {
+        inst_statement: (node, children) => {
+            return instTransformer(node, children, templates)
+        },
+        default: idTransform,
+    }) as ASTNode;
+
+    return mergeClasses(instReplacedAst);
+};
+
+const transformInst = (node: ASTNode, replaceInstTransformer: NodeTransform<ASTNode, ASTNode>) => transform(node, {
+    template_declaration: replaceInstTransformer, // TODO: Vurder om det er nødvendig å gjøre det for templater
+    package_declaration: replaceInstTransformer,
+    default: idTransform,
+});
+
+
+const instTransformer = (_ : ASTNode, children : ASTNode[], templates : Template[]) : ASTNode[] => {
     const instId =
         children.find(typeIs('identifier'))?.text || "";
     const renamings =
@@ -43,9 +41,17 @@ const instTransformer = (_ : ASTNode, children : ASTNode[], templates : {identif
             .map(extractRenamings) || [];
 
     const template = templates.find(identifierIs(instId));
+
     if (template === undefined) {
         throw new Error("Instantiating undefined template: " + instId);
     }
+
+    let templateBody = template.body;
+
+    if(!template.isClosed) {
+        templateBody = replaceInstantiations({children: template.body, type: 'temp', text: ''}, templates).children;
+    }
+
     return rename(renamings, template.body);
 }
 
