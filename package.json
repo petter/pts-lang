@@ -6,8 +6,8 @@
   "scripts": {
     "start": "nodemon",
     "build": "rimraf ./build && tsc",
-    "test": "jest",
-    "test:watch": "jest --watchAll"
+    "test": "ava",
+    "test:watch": "ava --watch"
   },
   "repository": {
     "type": "git",
