@@ -16,18 +16,18 @@ export default class Class extends Variable {
         return this.scope.lookup(name) || this.superClass?.lookup(name);
     }
 
-    addSuperClass(superClass: Class) {
+    addSuperClass(superClass: Class): Class {
         this.superClass = superClass;
         superClass.addChildClass(this);
         return this;
     }
 
-    addInstanceOfMe(v: Variable) {
+    addInstanceOfMe(v: Variable): Class {
         this.instancesOfMe.push(v);
         return this;
     }
 
-    addChildClass(c: Class) {
+    addChildClass(c: Class): Class {
         this.childClasses.push(c);
         return this;
     }

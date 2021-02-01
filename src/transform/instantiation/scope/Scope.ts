@@ -10,11 +10,11 @@ export default class Scope {
         this.parentScope = parentScope;
     }
 
-    public static createRootScope() {
+    public static createRootScope(): Scope {
         return new Scope();
     }
 
-    public static create(parentScope: Scope) {
+    public static create(parentScope: Scope): Scope {
         return new Scope(parentScope);
     }
 
@@ -41,16 +41,17 @@ export default class Scope {
         return varDef;
     }
 
-    rename(oldName: string, newName: string) {
+    rename(oldName: string, newName: string): Scope {
         const v = this.lookup(oldName);
         if (v === undefined) {
             throw new Error(`Variable ${oldName} does not exist and can not be renamed.`);
         } else {
-            return v.rename(newName);
+            v.rename(newName);
         }
+        return this;
     }
 
-    renameField(instanceOf: string, oldName: string, newName: string) {
+    renameField(instanceOf: string, oldName: string, newName: string): Scope {
         // Rename declaration
         const instanceOfClass = this.lookupClass(instanceOf);
         if (instanceOfClass === undefined) {
@@ -71,9 +72,11 @@ export default class Scope {
         //     throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
         // }
         // field.rename(newName);
+
+        return this;
     }
 
-    toString() {
+    toString(): string {
         return this.variables.map((v) => v.name + ': ' + v.instanceOf?.name).join('\n');
     }
 }

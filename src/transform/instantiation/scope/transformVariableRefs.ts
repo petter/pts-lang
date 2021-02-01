@@ -46,7 +46,7 @@ export default function transformVariableRefs(program: ScopedAST): ScopedVariabl
                 children: replace(children, newId, (el) => el === id),
             } as ScopedVariableAST;
         },
-        this: (node, children) => ({
+        this: (node) => ({
             type: 'variable',
             origType: node.type,
             var: node.scope.lookup('this')!,

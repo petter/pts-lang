@@ -4,11 +4,11 @@ import transform, { Transformer } from '../transform';
 
 export type Template = { identifier: string; body: ASTNode[]; isClosed: boolean };
 
-export function isClosed(body: ASTNode[]) {
+export function isClosed(body: ASTNode[]): boolean {
     return !body.some((child) => child.type === 'inst_statement');
 }
 
-export default function getTemplates(ast: ASTNode | ASTNode[]) {
+export default function getTemplates(ast: ASTNode | ASTNode[]): Template[] {
     const templates: Template[] = [];
     const findTemplatesTransform: Transformer<ASTNode, ASTNode> = {
         template_declaration: (node, children) => {

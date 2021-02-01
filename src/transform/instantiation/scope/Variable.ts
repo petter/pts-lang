@@ -13,12 +13,12 @@ export default class Variable {
         if (instanceOf) instanceOf.addInstanceOfMe(this);
     }
 
-    rename(newName: string) {
+    rename(newName: string): Variable {
         this.name = newName;
         return this;
     }
 
-    toString() {
+    toString(): string {
         return this.name;
     }
 }

@@ -1,4 +1,3 @@
-import transform from '../../index';
 import { ASTNode } from '../../../AST';
 import Scope from './Scope';
 import transformVariableRefs, { ScopedVariableAST } from './transformVariableRefs';
