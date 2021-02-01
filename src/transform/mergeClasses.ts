@@ -1,11 +1,11 @@
 import {ASTNode} from "../AST";
 import transform, {EMPTY_NODE} from "./index";
-import {idTransform} from "../util";
+import {idTransform, typeIs} from "../util";
 import _ from 'lodash';
 
-const classDeclId = (cld : ASTNode) => cld.children.find(el => el.type === 'type_identifier')!.text;
+const classDeclId = (cld : ASTNode) => cld.children.find(typeIs('type_identifier'))!.text;
 
-export default function mergeClasses(program: ASTNode) : ASTNode {
+export default function mergeClasses(program: ASTNode | ASTNode[]) : ASTNode | ASTNode[] {
     return transform<ASTNode, ASTNode>(program, {
         package_template_body: (node, children) => {
             const classes = children.filter(c => c.type === 'class_declaration');

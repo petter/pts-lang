@@ -9,7 +9,7 @@ import _ from 'lodash';
 
 import { toAST, ASTNode } from "./AST";
 import transform, { Transformer } from "./transform";
-import replaceInstantiations from "./transform/instantiation/replaceInstantiations";
+import InstantiationTransformer from "./transform/instantiation/replaceInstantiations";
 import toTS from "./transform/toTS";
 
 // tslint:disable-next-line: no-var-requires
@@ -40,8 +40,9 @@ export default function transpile(sourceCode: string, _options: Options) {
 
     if(options.verbose) console.log(toSExpressions(ast));
 
-    const inst = replaceInstantiations(ast);
-    const outputContent = options.targetLanguage === 'ts' ? toTS(inst) : ts.transpileModule(toTS(inst), {compilerOptions: {module: ts.ModuleKind.ES2020}}).outputText
+    const inst = InstantiationTransformer.transform(ast);
+    const programTranspiled = toTS(inst);
+    const outputContent = options.targetLanguage === 'ts' ? programTranspiled : ts.transpileModule(programTranspiled, {compilerOptions: {module: ts.ModuleKind.ES2020}}).outputText
 
     if (options.emitFile) {
         const outputFile = options.output + (options.targetLanguage === 'js' ? '.js' : '.ts')

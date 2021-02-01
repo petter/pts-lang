@@ -3,13 +3,13 @@ import { ASTNode } from "../AST";
 import transform, { Transformer } from "../transform";
 
 export type Template = { identifier: string; body: ASTNode[], isClosed: boolean };
-export default function getTemplates(program: ASTNode) {
-  function isClosed(body: ASTNode[]) {
+
+export function isClosed(body: ASTNode[]) {
     return !body.some(child => child.type === 'inst_statement')
-  }
+}
 
+export default function getTemplates(ast: ASTNode | ASTNode[]) {
   const templates: Template[] = [];
-
   const findTemplatesTransform: Transformer<ASTNode, ASTNode> = {
     template_declaration: (node, children) => {
       const identifier =
@@ -22,7 +22,7 @@ export default function getTemplates(program: ASTNode) {
     default: idTransform,
   };
 
-  transform(program, findTemplatesTransform);
+  transform(ast, findTemplatesTransform);
   return templates;
 }
 
