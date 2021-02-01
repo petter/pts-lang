@@ -42,6 +42,7 @@ exports.default = mergeClasses;
 function mergeClassGroups(classGroups) {
     return Object.values(classGroups).map(mergeClassesInGroups);
 }
+const dab = 1;
 function mergeClassesInGroups(classGroup) {
     const bodies = classGroup.map((n) => n.children.filter((el) => el.type === 'class_body').flatMap((el) => el.children));
     const mergedBodies = [
