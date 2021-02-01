@@ -3,51 +3,44 @@ import { ASTNode } from "../../../AST";
 import Scope from "./Scope";
 import transformVariableRefs, {ScopedVariableAST} from "./transformVariableRefs";
 
-function setScope<Inp extends {children: Inp[]}>(node : Inp, scope : Scope) : Inp & {scope: Scope} {
-    return {
-        ...node,
-        children: node.children.map(c => setScope(c, scope)),
-        scope
-    };
-}
-
 export interface ScopedAST extends ASTNode {
     scope: Scope;
     children: ScopedAST[];
 }
-export default function toScopedAST(program: ASTNode) : ScopedVariableAST {
-    const rootScope = new Scope(undefined);
 
-    const rootScopedAst = setScope(program, rootScope) as ScopedAST;
+const nodesWithScope = ['class_body', 'statement_block', "enum_body", 'if_statement', 'else_statement', 'for_statement', "for_in_statement", 'while_statement', 'do_statement', 'try_statement', 'with_statement'];
+const shouldNodeHaveOwnScope = (node: {type: string}) => nodesWithScope.includes(node.type);
 
-    const scopedAst = transform<ScopedAST, ScopedAST>(rootScopedAst, (revisit) => {
+export default class ASTScoper {
+    program : ASTNode;
 
-        const makeScope = (node: ScopedAST, _ : ScopedAST[])  => {
-            const scope = new Scope(node.scope);
-            const scopedChildren = revisit(node.children.map(child => setScope(child, scope))) as ScopedAST[];
-            return {
-                ...node,
-                children: scopedChildren,
-                scope,
-            }
+    constructor(program: ASTNode) {
+        this.program = program;
+    }
+
+    public static transform(program: ASTNode) : ScopedVariableAST {
+        const astScoper = new ASTScoper(program);
+        const scopedAst = astScoper.scopeProgram();
+        return transformVariableRefs(scopedAst)
+    }
+
+    private scopeProgram = () : ScopedAST => {
+        const rootScope = Scope.createRootScope();
+        return this.scopeNode(this.program, rootScope);
+    }
+
+    private scopeNode = (node: ASTNode, parentScope: Scope) : ScopedAST => {
+        let nodeScope = parentScope;
+        if(shouldNodeHaveOwnScope(node)) {
+            nodeScope = Scope.create(parentScope);
         }
+        if(node.children === undefined) console.log(this.program, node)
+        const scopedChildren = node.children.map(child => this.scopeNode(child, nodeScope));
         return {
-            class_body: makeScope,
-            statement_block: makeScope,
-            enum_body: makeScope,
-            if_statement: makeScope,
-            else_statement: makeScope,
-            for_statement: makeScope,
-            for_in_statement: makeScope,
-            while_statement: makeScope,
-            do_statement: makeScope,
-            try_statement: makeScope,
-            with_statement: makeScope,
-            default: (node, children) => ({
-                ...node,
-                children,
-            })
-        }
-    }) as ScopedAST;
-    return transformVariableRefs(scopedAst);
+            ...node,
+            scope: nodeScope,
+            children: scopedChildren
+        };
+    }
 }
+

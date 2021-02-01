@@ -1,6 +1,6 @@
 import { ASTNode } from "../../../AST";
-import toScopedAST from "../scope/toScopedAst";
 import toOriginalAST from "../scope/toOriginalAST";
+import ASTScoper from "../scope/toScopedAst";
 
 type Renaming = { old: string; new: string };
 type ClassRenaming = Renaming & { fields: Renaming[] };
@@ -11,10 +11,10 @@ export default function rename(
 ): ASTNode[] {
     const root = {
         type: 'temp_root',
-        children: body,
+        children: body.flat(), // TODO: Find out why this sometimes is nested, and fix it
         text: ''
     }
-    const scopedAST = toScopedAST(root);
+    const scopedAST = ASTScoper.transform(root);
     renamings.forEach((classRenaming) => {
         scopedAST.scope.rename(classRenaming.old, classRenaming.new);
         classRenaming.fields.forEach((fieldRenaming) =>

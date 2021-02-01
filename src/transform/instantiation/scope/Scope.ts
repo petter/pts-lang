@@ -6,8 +6,16 @@ export default class Scope {
     variables : Variable[] = [];
     classes : Class[] = []
 
-    constructor(parentScope : undefined | Scope) {
+    private constructor(parentScope? : Scope) {
         this.parentScope = parentScope;
+    }
+
+    public static createRootScope() {
+        return new Scope();
+    }
+
+    public static create(parentScope: Scope) {
+        return new Scope(parentScope);
     }
 
     lookup(name : string) : undefined | Variable {
