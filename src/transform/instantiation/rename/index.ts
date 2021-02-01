@@ -1,6 +1,6 @@
 import { ASTNode } from "../../../AST";
 import toOriginalAST from "../scope/toOriginalAST";
-import ASTScoper from "../scope/toScopedAst";
+import ASTScoper from "../scope/ASTScoper";
 
 type Renaming = { old: string; new: string };
 type ClassRenaming = Renaming & { fields: Renaming[] };

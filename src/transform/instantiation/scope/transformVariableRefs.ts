@@ -1,7 +1,7 @@
 import transform from "../../index";
 import {idTransform, replace, typeIs} from "../../../util";
 import Scope from "./Scope";
-import { ScopedAST } from "./toScopedAst";
+import { ScopedAST } from "./ASTScoper";
 import Variable from "./Variable";
 import Class from "./Class";
 
