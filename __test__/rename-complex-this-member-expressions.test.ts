@@ -7,7 +7,7 @@ template T {
     class A {
         i = 0;
         
-        constructor(i : number) {
+        constructor(i: number) {
             this.i = i; 
         }
     }
@@ -20,9 +20,8 @@ package P {
 
     const expected = `class A {
     j = 0;
-    
-    constructor(i : number) {
-        this.j = i; 
+    constructor(i: number) {
+        this.j = i;
     }
 }
 `
