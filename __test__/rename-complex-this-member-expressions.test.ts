@@ -6,9 +6,9 @@ test('Renames field i to j', (t) => {
 template T {
     class A {
         i = 0;
-        
+
         constructor(i: number) {
-            this.i = i; 
+            this.i = i;
         }
     }
 }

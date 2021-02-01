@@ -6,15 +6,15 @@ test('Renames field i to j', (t) => {
 template T {
     class A {
         i = 0;
-        
+
         constructor(n : number) {
-            this.i = n; 
+            this.i = n;
         }
     }
 }
 
 package P {
-    inst T { A -> A (i -> j) } ;
+    inst T { A -> A (i -> j) };
 }
 `
 
