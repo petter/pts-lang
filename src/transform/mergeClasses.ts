@@ -20,6 +20,8 @@ export default function mergeClasses(program: ASTNode | ASTNode[]): ASTNode | AS
     }) as ASTNode;
 }
 
+const test = 1;
+
 function mergeClassGroups(classGroups: _.Dictionary<ASTNode[]>) {
     return Object.values(classGroups).map(mergeClassesInGroups);
 }

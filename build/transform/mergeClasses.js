@@ -39,6 +39,7 @@ function mergeClasses(program) {
     });
 }
 exports.default = mergeClasses;
+const test = 1;
 function mergeClassGroups(classGroups) {
     return Object.values(classGroups).map(mergeClassesInGroups);
 }
