@@ -1,8 +1,8 @@
-'use strict';
-Object.defineProperty(exports, '__esModule', { value: true });
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.toAST = void 0;
 function toAST(tree) {
-    var cursor = tree.walk();
+    const cursor = tree.walk();
     function visitNode() {
         return {
             type: cursor.nodeType,
@@ -11,8 +11,9 @@ function toAST(tree) {
         };
     }
     function visitChildren() {
-        var children = [];
-        if (!cursor.gotoFirstChild()) return children;
+        const children = [];
+        if (!cursor.gotoFirstChild())
+            return children;
         do {
             children.push(visitNode());
         } while (cursor.gotoNextSibling());

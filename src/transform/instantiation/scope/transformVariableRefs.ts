@@ -46,7 +46,7 @@ export default function transformVariableRefs(program: ScopedAST): ScopedVariabl
                 children: replace(children, newId, (el) => el === id),
             } as ScopedVariableAST;
         },
-        this: (node, children) => ({
+        this: (node) => ({
             type: 'variable',
             origType: node.type,
             var: node.scope.lookup('this')!,
@@ -235,7 +235,6 @@ function memberOfMember(node: ScopedVariableAST, children: ScopedVariableAST[]) 
 function memberOfIdentifier(node: ScopedVariableAST, children: ScopedVariableAST[]): ScopedVariableAST {
     // TODO: Can this happen? How is this different from memberOfVariable?
     // a.i
-    // TODO: Handle this
     const memberOfId = children[MEMBER_OF] as ScopedAST;
     const memberId = children[2] as ScopedAST;
     console.log('memberOfIdentifier?', memberOfId.text + '.' + memberId.text);

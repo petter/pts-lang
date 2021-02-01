@@ -22,7 +22,7 @@ type Options = {
     emitFile?: boolean;
 };
 
-export default function transpile(sourceCode: string, _options: Options) {
+export default function transpile(sourceCode: string, _options: Options): string | undefined {
     const options: Required<Options> = {
         targetLanguage: 'js',
         verbose: false,
@@ -52,7 +52,7 @@ export default function transpile(sourceCode: string, _options: Options) {
     }
 }
 
-export function transpileFile(file: string, options: Options) {
+export function transpileFile(file: string, options: Options): string | undefined {
     const content = fs.readFileSync(file, 'utf-8');
     const backupFileName = path.basename(file, '.pts');
     return transpile(content, { ...options, output: options.output || backupFileName });

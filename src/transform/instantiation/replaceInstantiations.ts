@@ -1,5 +1,5 @@
 import { ASTNode } from '../../AST';
-import transform, { NodeTransform, Transformer } from '../index';
+import transform from '../index';
 import { identifierIs, idTransform, typeIs } from '../../util';
 import getTemplates, { Template } from '../../util/getTemplates';
 import rename from './rename';

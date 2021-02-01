@@ -13,4 +13,6 @@
   - [x] Rename `this.x` from super class (member_expressions)
   - [x] Rename other references to fields, i.e. member_expressions of variables, `a.i`
 - [ ] Merging classes
+  - [x] Merge bodies of two classes
+  - [ ] Checking if it is valid to merge classes (Do they have different heritage?)
 - [ ] Validating templates

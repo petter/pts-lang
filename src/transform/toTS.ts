@@ -2,7 +2,7 @@ import prettier from 'prettier';
 import { ASTNode } from '../AST';
 import transform from '../transform';
 
-export default function toTS(program: ASTNode) {
+export default function toTS(program: ASTNode): string {
     const unformatted = transform<ASTNode, string>(program, {
         template_declaration: () => '',
         package_declaration: (_, children) => children.slice(2).join(''),
@@ -11,7 +11,7 @@ export default function toTS(program: ASTNode) {
         program: (_, children) => children.join('\n'),
         class_body: (_, children) => children.join('\n'),
         statement_block: (_, children) => children.join('\n'),
-        string: (node, _) => node.text,
+        string: (node) => node.text,
         default: (node, children) => {
             if (children.length === 0) {
                 return node.text;

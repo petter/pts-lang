@@ -1,85 +1,85 @@
-'use strict';
-var __assign =
-    (this && this.__assign) ||
-    function () {
-        __assign =
-            Object.assign ||
-            function (t) {
-                for (var s, i = 1, n = arguments.length; i < n; i++) {
-                    s = arguments[i];
-                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-                }
-                return t;
-            };
-        return __assign.apply(this, arguments);
-    };
-var __importDefault =
-    (this && this.__importDefault) ||
-    function (mod) {
-        return mod && mod.__esModule ? mod : { default: mod };
-    };
-Object.defineProperty(exports, '__esModule', { value: true });
-var index_1 = __importDefault(require('../index'));
-var util_1 = require('../../util');
-var getTemplates_1 = __importDefault(require('../../util/getTemplates'));
-var rename_1 = __importDefault(require('./rename'));
-var mergeClasses_1 = __importDefault(require('../mergeClasses'));
-function replaceInstantiations(program, _templates) {
-    var templates = _templates || getTemplates_1.default(program);
-    var replaceInstTransformer = makeReplaceInstTransformer(templates);
-    return transformInst(program, replaceInstTransformer);
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const index_1 = __importDefault(require("../index"));
+const util_1 = require("../../util");
+const getTemplates_1 = __importDefault(require("../../util/getTemplates"));
+const rename_1 = __importDefault(require("./rename"));
+const mergeClasses_1 = __importDefault(require("../mergeClasses"));
+class InstantiationTransformer {
+    constructor(program, templates) {
+        this.transformPackageTemplateDecls = () => {
+            return index_1.default(this.program, {
+                template_declaration: this.transformPackageTemplate,
+                package_declaration: this.transformPackageTemplate,
+                default: util_1.idTransform,
+            });
+        };
+        this.transformPackageTemplate = (node, children) => {
+            const newChildren = index_1.default(children, {
+                inst_statement: this.transformInstStatement,
+                default: util_1.idTransform,
+            });
+            return { ...node, children: newChildren };
+        };
+        this.transformInstStatement = (_, children) => {
+            const instId = this.getIdentifier(children, 'Instantiation is instantiating something without an identifier.');
+            const renamings = children.find(util_1.typeIs('class_renamings'))?.children.filter(util_1.typeIs('class_rename')).map(extractRenamings) ||
+                [];
+            const template = this.getTemplate(instId);
+            if (template === undefined) {
+                throw new Error('Instantiating undefined template: ' + instId);
+            }
+            const body = this.getClosedTemplateBody(template);
+            const renamedBody = rename_1.default(renamings, body);
+            const mergedClassesBody = mergeClasses_1.default(renamedBody);
+            return mergedClassesBody;
+        };
+        this.getClosedTemplateBody = (template) => {
+            if (template.isClosed)
+                return template.body;
+            return this.closeTemplate(template).body;
+        };
+        this.closeTemplate = (template) => {
+            const closedTemplate = this.transformPackageTemplate(null, template.body);
+            template.body = closedTemplate.children;
+            template.isClosed = true;
+            return template;
+        };
+        this.getIdentifier = (children, errorMsg) => {
+            const idNode = children.find(util_1.typeIs('identifier'));
+            if (idNode === undefined) {
+                throw new Error(errorMsg || 'No identifier node in children');
+            }
+            return idNode.text;
+        };
+        this.getTemplate = (id) => this.templates.find(util_1.identifierIs(id));
+        this.program = program;
+        this.templates = templates;
+    }
+    static transform(program) {
+        const templates = getTemplates_1.default(program);
+        const instantiationTransformer = new InstantiationTransformer(program, templates);
+        return instantiationTransformer.transformPackageTemplateDecls();
+    }
 }
-exports.default = replaceInstantiations;
-var makeReplaceInstTransformer = function (templates) {
-    return function (instNode, instChildren) {
-        var ast = __assign(__assign({}, instNode), { children: instChildren });
-        var instReplacedAst = index_1.default(ast, {
-            inst_statement: function (node, children) {
-                return instTransformer(node, children, templates);
-            },
-            default: util_1.idTransform,
-        });
-        return mergeClasses_1.default(instReplacedAst);
-    };
-};
-var transformInst = function (node, replaceInstTransformer) {
-    return index_1.default(node, {
-        template_declaration: replaceInstTransformer,
-        package_declaration: replaceInstTransformer,
-        default: util_1.idTransform,
-    });
-};
-var instTransformer = function (_, children, templates) {
-    var _a, _b;
-    var instId = ((_a = children.find(util_1.typeIs('identifier'))) === null || _a === void 0 ? void 0 : _a.text) || '';
-    var renamings =
-        ((_b = children.find(util_1.typeIs('class_renamings'))) === null || _b === void 0
-            ? void 0
-            : _b.children.filter(util_1.typeIs('class_rename')).map(extractRenamings)) || [];
-    var template = templates.find(util_1.identifierIs(instId));
-    if (template === undefined) {
-        throw new Error('Instantiating undefined template: ' + instId);
-    }
-    var templateBody = template.body;
-    if (!template.isClosed) {
-        templateBody = replaceInstantiations({ children: template.body, type: 'temp', text: '' }, templates).children;
-    }
-    return rename_1.default(renamings, template.body);
-};
+exports.default = InstantiationTransformer;
 function extractRenamings(classRenameNode) {
-    var _a;
-    var classRenaming = classRenameNode.children[0];
-    var fieldRenamings =
-        (_a = classRenameNode.children.find(util_1.typeIs('field_renamings'))) === null || _a === void 0
-            ? void 0
-            : _a.children.filter(util_1.typeIs('rename')).map(makeRenameObject);
-    return __assign(__assign({}, makeRenameObject(classRenaming)), { fields: fieldRenamings || [] });
-}
-var RENAMING_OLD = 0;
-var RENAMING_NEW = 2;
-var makeRenameObject = function (renamingNode) {
+    const classRenaming = classRenameNode.children[0];
+    const fieldRenamings = classRenameNode.children
+        .find(util_1.typeIs('field_renamings'))
+        ?.children.filter(util_1.typeIs('rename'))
+        .map(makeRenameObject);
     return {
-        old: renamingNode.children[RENAMING_OLD].text,
-        new: renamingNode.children[RENAMING_NEW].text,
+        ...makeRenameObject(classRenaming),
+        fields: fieldRenamings || [],
     };
-};
+}
+const RENAMING_OLD = 0;
+const RENAMING_NEW = 2;
+const makeRenameObject = (renamingNode) => ({
+    old: renamingNode.children[RENAMING_OLD].text,
+    new: renamingNode.children[RENAMING_NEW].text,
+});
