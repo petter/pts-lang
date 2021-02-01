@@ -34,7 +34,6 @@ export default class ASTScoper {
         if(shouldNodeHaveOwnScope(node)) {
             nodeScope = Scope.create(parentScope);
         }
-        if(node.children === undefined) console.log(this.program, node)
         const scopedChildren = node.children.map(child => this.scopeNode(child, nodeScope));
         return {
             ...node,
