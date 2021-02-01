@@ -12,13 +12,13 @@ template T {
 package P {
     inst T { A -> A (i -> j) } ;
 }
-`
+`;
 
     const expected = `class A {
     j = 0;
 }
-`
-    const result = transpile(program, {emitFile: false,targetLanguage: 'ts' });
+`;
+    const result = transpile(program, { emitFile: false, targetLanguage: 'ts' });
 
     t.is(result, expected);
-})
+});

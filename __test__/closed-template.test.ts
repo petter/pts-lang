@@ -8,10 +8,10 @@ template P {
         i = 0;
     }
 }
-`
+`;
 
-    const expected = ``
-    const result = transpile(program, {emitFile: false,targetLanguage: 'ts' });
+    const expected = ``;
+    const result = transpile(program, { emitFile: false, targetLanguage: 'ts' });
 
     t.is(result, expected);
-})
+});
