@@ -28,13 +28,13 @@ const tree_sitter_1 = __importDefault(require("tree-sitter"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const yargs_1 = __importDefault(require("yargs"));
-const helpers_1 = require("yargs/helpers");
 const lodash_1 = __importDefault(require("lodash"));
+// @ts-ignore
+const PTS = require("tree-sitter-pts");
 const AST_1 = require("./AST");
 const transform_1 = __importDefault(require("./transform"));
 const replaceInstantiations_1 = __importDefault(require("./transform/instantiation/replaceInstantiations"));
 const toTS_1 = __importDefault(require("./transform/toTS"));
-const PTS = require("tree-sitter-pts");
 const parser = new tree_sitter_1.default();
 parser.setLanguage(PTS);
 function transpile(sourceCode, _options) {
@@ -70,7 +70,7 @@ function transpileFile(file, options) {
 }
 exports.transpileFile = transpileFile;
 if (require.main === module) {
-    const argv = yargs_1.default(helpers_1.hideBin(process.argv))
+    const argv = yargs_1.default
         .option('input', {
         type: 'string',
         alias: 'i',

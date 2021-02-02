@@ -3,14 +3,14 @@ import Parser from 'tree-sitter';
 import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import _ from 'lodash';
+// @ts-ignore
+import PTS = require('tree-sitter-pts');
 
 import { ASTNode, toAST } from './AST';
 import transform, { Transformer } from './transform';
 import InstantiationTransformer from './transform/instantiation/replaceInstantiations';
 import toTS from './transform/toTS';
-import PTS = require('tree-sitter-pts');
 
 const parser = new Parser();
 parser.setLanguage(PTS);
@@ -59,7 +59,7 @@ export function transpileFile(file: string, options: Options): string | undefine
 }
 
 if (require.main === module) {
-    const argv = yargs(hideBin(process.argv))
+    const argv = yargs
         .option('input', {
             type: 'string',
             alias: 'i',
