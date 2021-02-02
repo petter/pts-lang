@@ -24,6 +24,6 @@ function toTS(program) {
             }
         },
     });
-    return prettier_1.default.format(unformatted, { semi: true, parser: 'babel', tabWidth: 4 });
+    return prettier_1.default.format(unformatted, { semi: true, parser: 'typescript', tabWidth: 4 });
 }
 exports.default = toTS;

@@ -9,9 +9,8 @@ template T {
     }
     
     class X {
-        a : A = new A();
-        constructor(a : A) {
-            this.a = a;
+        isA(object: any) : object is A {
+            return 'i' in object;
         }
     }
 }
@@ -26,9 +25,8 @@ package P {
 }
 
 class X {
-    a: B = new B();
-    constructor(a: B) {
-        this.a = a;
+    isA(object: any) : object is B {
+        return 'i' in object;
     }
 }
 `;

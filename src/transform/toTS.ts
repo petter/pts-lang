@@ -20,5 +20,5 @@ export default function toTS(program: ASTNode): string {
             }
         },
     }) as string;
-    return prettier.format(unformatted, { semi: true, parser: 'babel', tabWidth: 4 });
+    return prettier.format(unformatted, { semi: true, parser: 'typescript', tabWidth: 4 });
 }
