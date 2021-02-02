@@ -14,6 +14,11 @@ function findLast(elements, check) {
         return undefined;
     return ts[ts.length - 1];
 }
+class VariableTransformer {
+    constructor(program) {
+        this.program = program;
+    }
+}
 function transformVariableRefs(program) {
     const declarationRegisteredNode = registerDeclarations(program);
     const registerRefs = index_1.default(declarationRegisteredNode, {

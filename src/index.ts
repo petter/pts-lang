@@ -9,7 +9,7 @@ import PTS = require('tree-sitter-pts');
 
 import { ASTNode, toAST } from './AST';
 import transform, { Transformer } from './transform';
-import InstantiationTransformer from './transform/instantiation/replaceInstantiations';
+import InstantiationTransformer from './transform/instantiation/InstantiationTransformer';
 import toTS from './transform/toTS';
 
 const parser = new Parser();

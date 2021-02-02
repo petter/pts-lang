@@ -33,7 +33,7 @@ const lodash_1 = __importDefault(require("lodash"));
 const PTS = require("tree-sitter-pts");
 const AST_1 = require("./AST");
 const transform_1 = __importDefault(require("./transform"));
-const replaceInstantiations_1 = __importDefault(require("./transform/instantiation/replaceInstantiations"));
+const InstantiationTransformer_1 = __importDefault(require("./transform/instantiation/InstantiationTransformer"));
 const toTS_1 = __importDefault(require("./transform/toTS"));
 const parser = new tree_sitter_1.default();
 parser.setLanguage(PTS);
@@ -49,7 +49,7 @@ function transpile(sourceCode, _options) {
     const ast = AST_1.toAST(parseTree);
     if (options.verbose)
         console.log(toSExpressions(ast));
-    const inst = replaceInstantiations_1.default.transform(ast);
+    const inst = InstantiationTransformer_1.default.transform(ast);
     const programTranspiled = toTS_1.default(inst);
     const outputContent = options.targetLanguage === 'ts'
         ? programTranspiled
