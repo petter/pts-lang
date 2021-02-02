@@ -1,6 +1,6 @@
 {
-  "watch": ["src"],
-  "ext": ".ts,.js",
-  "ignore": [],
-  "exec": "ts-node ./src/index.ts -i examples/full-class-rename.pts -o out/out --target=ts"
+    "watch": ["src"],
+    "ext": ".ts,.js",
+    "ignore": [],
+    "exec": "ts-node ./src/index.ts -i examples/rename-is-operator-reference.pts -o out/out --target=ts"
 }

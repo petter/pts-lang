@@ -1,0 +1,15 @@
+template T {
+    class A {
+        i = 0;
+    }
+
+    class X {
+        isA(object: any): object is A {
+            return 'i' in object;
+        }
+    }
+}
+
+package P {
+    inst T { A -> B };
+}
