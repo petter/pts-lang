@@ -5,7 +5,7 @@ import transform from '../transform';
 export default function toTS(program: ASTNode): string {
     const unformatted = transform<ASTNode, string>(program, {
         template_declaration: () => '',
-        package_declaration: (_, children) => children.slice(2).join(''),
+        package_declaration: (_, children) => children[2],
         package_template_body: (_, children) => children.slice(1, -1).join('\n'),
         member_expression: (_, children) => children.join(''),
         program: (_, children) => children.join('\n'),
