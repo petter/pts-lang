@@ -1,4 +1,4 @@
-# pts
+# PTS (Package Template Script) / An implementation of Package Templates in TypeScript
 
 - [x] Instantiating closed templates
 - [x] Renaming classes
