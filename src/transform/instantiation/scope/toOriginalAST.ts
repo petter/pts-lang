@@ -1,6 +1,6 @@
 import transform from '../../index';
 import { ASTNode } from '../../../AST';
-import { ScopedRefNode } from './transformVariableRefs';
+import { ScopedRefNode } from './ReferenceTransformer';
 import Variable from './Variable';
 
 export default function toOriginalAST(program: ScopedRefNode | ScopedRefNode[]): ASTNode | ASTNode[] {

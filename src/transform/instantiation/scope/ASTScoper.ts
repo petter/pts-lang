@@ -1,6 +1,6 @@
 import { ASTNode } from '../../../AST';
 import Scope from './Scope';
-import ReferenceTransformer, { ScopedRefNode } from './transformVariableRefs';
+import ReferenceTransformer, { ScopedRefNode } from './ReferenceTransformer';
 
 export interface ScopedAST extends ASTNode {
     scope: Scope;

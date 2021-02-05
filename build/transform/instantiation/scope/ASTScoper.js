@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Scope_1 = __importDefault(require("./Scope"));
-const transformVariableRefs_1 = __importDefault(require("./transformVariableRefs"));
+const ReferenceTransformer_1 = __importDefault(require("./ReferenceTransformer"));
 const nodesWithScope = [
     'class_body',
     'statement_block',
@@ -42,7 +42,7 @@ class ASTScoper {
     static transform(program) {
         const astScoper = new ASTScoper(program);
         const scopedAst = astScoper.scopeProgram();
-        return transformVariableRefs_1.default.transform(scopedAst);
+        return ReferenceTransformer_1.default.transform(scopedAst);
     }
 }
 exports.default = ASTScoper;
