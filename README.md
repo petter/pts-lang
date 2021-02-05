@@ -1,12 +1,12 @@
 # pts
 
 - [x] Instantiating closed templates
-- [ ] Renaming classes
+- [x] Renaming classes
   - [x] Rename class declarations
   - [x] Rename class heritage
   - [x] Rename class instantiations
   - [x] Rename member_expressions on static class fields (i.e. `A.k`)
-  - [ ] Rename other class references, i.e. as a type (Maybe enough to have another pass on `type_identifiers`)
+  - [x] Rename other class references, i.e. as a type (Maybe enough to have another pass on `type_identifiers`)
 - [x] Renaming fields
   - [x] Rename field declaration (public_field_definition)
   - [x] Rename `this.x` from same class (local member_expressions)
@@ -15,4 +15,9 @@
 - [ ] Merging classes
   - [x] Merge bodies of two classes
   - [ ] Checking if it is valid to merge classes (Do they have different heritage?)
+    - [ ] If one class has heritage while the other doesn't, choose the signature of the class with heritage
+- [ ] Addto statements
+  - [ ] Add implementing interfaces and extended classes to the class
+  - [ ] Check if the class to be added to exists
+  - [ ] Merge bodies of the class and addto-statement
 - [ ] Validating templates
