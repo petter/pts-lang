@@ -14,5 +14,5 @@ module.exports = {
         // e.g. "@typescript-eslint/explicit-function-return-type": "off",
         '@typescript-eslint/ban-ts-comment': 'off',
     },
-    ignorePatterns: ['build', 'out'],
+    ignorePatterns: ['build', 'out', 'cli.js'],
 };

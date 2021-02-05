@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -66,7 +67,7 @@ exports.default = transpile;
 function transpileFile(file, options) {
     const content = fs_1.default.readFileSync(file, 'utf-8');
     const backupFileName = path_1.default.basename(file, '.pts');
-    return transpile(content, { ...options, output: options.output || backupFileName });
+    return transpile(content, { ...options, output: options.output === undefined ? backupFileName : options.output });
 }
 exports.transpileFile = transpileFile;
 if (require.main === module) {
@@ -94,12 +95,21 @@ if (require.main === module) {
         demandOption: false,
         description: 'Target language of the transpiler',
         default: 'js',
+    })
+        .option('run', {
+        alias: ['r'],
+        type: 'boolean',
+        demandOption: true,
+        default: false,
     }).argv;
-    transpileFile(argv.input, {
+    const result = transpileFile(argv.input, {
         verbose: argv.verbose,
         output: argv.output,
+        emitFile: !argv.run,
         targetLanguage: argv.targetLanguage,
     });
+    if (argv.run)
+        eval(result || '');
 }
 function toSExpressions(ast) {
     const sExprTransformer = {

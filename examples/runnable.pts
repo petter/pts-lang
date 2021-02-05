@@ -1,0 +1,11 @@
+template T {
+    class A {
+        i = 2;
+    }
+}
+
+package P {
+    inst T;
+    const a = new A();
+    console.log(a.i);
+}

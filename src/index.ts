@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as ts from 'typescript';
 import Parser from 'tree-sitter';
 import fs from 'fs';
@@ -18,7 +20,7 @@ parser.setLanguage(PTS);
 type Options = {
     targetLanguage?: 'ts' | 'js';
     verbose?: boolean;
-    output?: string | undefined;
+    output?: string | false | undefined;
     emitFile?: boolean;
 };
 
@@ -55,7 +57,7 @@ export default function transpile(sourceCode: string, _options: Options): string
 export function transpileFile(file: string, options: Options): string | undefined {
     const content = fs.readFileSync(file, 'utf-8');
     const backupFileName = path.basename(file, '.pts');
-    return transpile(content, { ...options, output: options.output || backupFileName });
+    return transpile(content, { ...options, output: options.output === undefined ? backupFileName : options.output });
 }
 
 if (require.main === module) {
@@ -83,12 +85,21 @@ if (require.main === module) {
             demandOption: false,
             description: 'Target language of the transpiler',
             default: 'js',
+        })
+        .option('run', {
+            alias: ['r'],
+            type: 'boolean',
+            demandOption: true,
+            default: false,
         }).argv;
-    transpileFile(argv.input, {
+    const result = transpileFile(argv.input, {
         verbose: argv.verbose,
         output: argv.output,
+        emitFile: !argv.run,
         targetLanguage: argv.targetLanguage as 'js' | 'ts',
     });
+
+    if (argv.run) eval(result || '');
 }
 
 function toSExpressions(ast: ASTNode): string {
