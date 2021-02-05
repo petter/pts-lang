@@ -30,6 +30,7 @@ export default class Scope {
         const classDef = new Class(name, scope);
         this.classes.push(classDef);
         this.variables.push(classDef);
+        scope.defineVariable('this', name);
         return classDef;
     }
 

@@ -27,6 +27,7 @@ class Scope {
         const classDef = new Class_1.default(name, scope);
         this.classes.push(classDef);
         this.variables.push(classDef);
+        scope.defineVariable('this', name);
         return classDef;
     }
     defineVariable(name, instanceOfName) {

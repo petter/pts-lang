@@ -22,7 +22,7 @@ class InstantiationTransformer {
                 inst_statement: this.transformInstStatement,
                 default: util_1.idTransform,
             });
-            return { ...node, children: newChildren };
+            return { ...(node ?? {}), children: newChildren };
         };
         this.transformInstStatement = (_, children) => {
             const instId = this.getIdentifier(children, 'Instantiation is instantiating something without an identifier.');

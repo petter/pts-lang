@@ -42,7 +42,7 @@ class ASTScoper {
     static transform(program) {
         const astScoper = new ASTScoper(program);
         const scopedAst = astScoper.scopeProgram();
-        return transformVariableRefs_1.default(scopedAst);
+        return transformVariableRefs_1.default.transform(scopedAst);
     }
 }
 exports.default = ASTScoper;

@@ -33,7 +33,7 @@ export default class InstantiationTransformer {
             inst_statement: this.transformInstStatement,
             default: idTransform,
         });
-        return { ...node, children: newChildren } as ASTNode;
+        return { ...(node ?? {}), children: newChildren } as ASTNode;
     };
 
     private transformInstStatement = (_: ASTNode, children: ASTNode[]): ASTNode | ASTNode[] => {

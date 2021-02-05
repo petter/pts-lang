@@ -7,7 +7,12 @@ template T {
             console.log('test');
         }
     }
-    class B extends A {
+
+    class C {
+        k = 1;
+    }
+
+    class B extends A<T> implements A1 {
         j = 1;
         a = new A();
         constructor() {

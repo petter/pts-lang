@@ -11,7 +11,7 @@ function toOriginalAST(program) {
     return index_1.default(program, {
         variable: (node, children) => ({
             type: node.origType,
-            text: node.var.toString(),
+            text: node.ref.toString(),
             children,
         }),
         default: (node, children) => ({

@@ -1,238 +1,310 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = __importDefault(require("../../index"));
+exports.RefNode = void 0;
 const util_1 = require("../../../util");
-const Class_1 = __importDefault(require("./Class"));
 const MEMBER_OF = 0;
 const MEMBER = 2;
-function findLast(elements, check) {
-    const ts = elements.filter(check);
-    if (ts.length === 0)
-        return undefined;
-    return ts[ts.length - 1];
-}
-class VariableTransformer {
-    constructor(program) {
-        this.program = program;
+class RefNode {
+    constructor({ origType, ref, scope }) {
+        this.type = 'variable';
+        this.text = '';
+        this.children = [];
+        this.origType = origType;
+        this.ref = ref;
+        this.scope = scope;
     }
 }
-function transformVariableRefs(program) {
-    const declarationRegisteredNode = registerDeclarations(program);
-    const registerRefs = index_1.default(declarationRegisteredNode, {
-        new_expression: (node, children) => {
-            const id = children.find((c) => c.type === 'identifier');
-            const decl = id.scope.lookup(id.text);
+exports.RefNode = RefNode;
+/**
+ * Travels the tree to register declarations, and then transforms the nodes that reference a class or a class field to
+ * a @RefNode.
+ */
+class ReferenceTransformer {
+    constructor(program) {
+        this.applyToNodesOfType = (typeFuncMap) => {
+            function applyToNodesOfTypeRecurse(node) {
+                let newNode = node;
+                if (node.type in typeFuncMap) {
+                    newNode = typeFuncMap[node.type](node);
+                }
+                const newChildren = newNode.children.map(applyToNodesOfTypeRecurse);
+                return { ...newNode, children: newChildren };
+            }
+            this.program = applyToNodesOfTypeRecurse(this.program);
+        };
+        this.registerDeclarations = () => {
+            this.registerAllClassDeclarations();
+            this.registerClassHeritages();
+            this.registerClassFieldDeclarations();
+        };
+        this.registerAllClassDeclarations = () => {
+            this.applyToNodesOfType({ class_declaration: this.registerClassDeclaration });
+        };
+        this.registerClassDeclaration = (node) => {
+            const classNameIndex = node.children.findIndex(util_1.typeIs('type_identifier'));
+            const classNameNode = node.children[classNameIndex];
+            const className = classNameNode.text;
+            const classScope = node.children.find(util_1.typeIs('class_body')).scope;
+            const classDecl = node.scope.defineClass(className, classScope);
+            const classRefNode = new RefNode({ origType: classNameNode.type, ref: classDecl, scope: node.scope });
+            const newChildren = [...node.children];
+            newChildren[classNameIndex] = classRefNode;
+            return { ...node, children: newChildren };
+        };
+        this.registerClassHeritages = () => {
+            this.applyToNodesOfType({ class_declaration: this.registerClassHeritage });
+        };
+        this.registerClassHeritage = (node) => {
+            const EXTENDS_CLAUSE = 0;
+            let hasExtends = false;
+            const heritageIndex = node.children.findIndex(util_1.typeIs('class_heritage'));
+            if (heritageIndex === -1)
+                return node;
+            const subClassRef = node.children.find(util_1.typeIs('variable'));
+            const heritageNode = { ...node.children[heritageIndex], children: [...node.children[heritageIndex].children] };
+            const { extendsClause, implementsClause } = getHeritageNodes(heritageNode);
+            if (extendsClause !== undefined) {
+                hasExtends = true;
+                // TypeScript grammar allows for several superclasses, so we will treat it as allowed as well.
+                // TODO: Also allow it in Class-class
+                const newExtendsClauseChildren = [...extendsClause.children].map((child) => {
+                    if (child.type === 'extends' || child.type === ',')
+                        return child;
+                    if (child.type === 'type_identifier')
+                        return this.transformTypeIdentifier(child);
+                    if (child.type === 'generic_type')
+                        return this.transformGenericTypeIdentifier(child);
+                    throw new Error(child.type + ' is not a supported superclass');
+                });
+                heritageNode.children[EXTENDS_CLAUSE] = { ...extendsClause, children: newExtendsClauseChildren };
+                const firstSuperClass = newExtendsClauseChildren[1];
+                let firstRefNode;
+                if (firstSuperClass instanceof RefNode) {
+                    firstRefNode = firstSuperClass;
+                }
+                else {
+                    // generic_type
+                    firstRefNode = firstSuperClass.children[0];
+                }
+                // TODO: Do something like this for interfaces as well
+                if (subClassRef !== undefined) {
+                    subClassRef.ref.addSuperClass(firstRefNode.ref);
+                }
+                else {
+                    throw new Error("Can't find subclass" + node.children);
+                }
+            }
+            if (implementsClause !== undefined) {
+                const newImplementsClauseChildren = [...implementsClause.children].map((child) => {
+                    if (child.type === 'implements' || child.type === ',')
+                        return child;
+                    if (child.type === 'type_identifier')
+                        return this.transformTypeIdentifier(child);
+                    if (child.type === 'generic_type')
+                        return this.transformGenericTypeIdentifier(child);
+                    throw new Error(child.type + ' is not a supported implementing interface');
+                });
+                heritageNode.children[EXTENDS_CLAUSE + (hasExtends ? 1 : 0)] = {
+                    ...implementsClause,
+                    children: newImplementsClauseChildren,
+                };
+            }
+            const newChildren = [...node.children];
+            newChildren[heritageIndex] = heritageNode;
+            return { ...node, children: newChildren };
+        };
+        this.transformTypeIdentifier = (typeIdentifierNode) => {
+            const classRef = typeIdentifierNode.scope.lookupClass(typeIdentifierNode.text);
+            if (classRef === undefined)
+                return typeIdentifierNode;
+            return new RefNode({ origType: typeIdentifierNode.type, scope: typeIdentifierNode.scope, ref: classRef });
+        };
+        this.transformGenericTypeIdentifier = (genericTypeNode) => {
+            const newGenericTypeNode = { ...genericTypeNode, children: [...genericTypeNode.children] };
+            const genericTargetNode = genericTypeNode.children[0];
+            if (genericTargetNode.type !== 'type_identifier') {
+                // TODO: Support it
+                throw new Error('Nested type identifier are not supported');
+            }
+            const genericTargetRefNode = this.transformTypeIdentifier(genericTargetNode);
+            newGenericTypeNode.children[0] = genericTargetRefNode;
+            const newTypeArguments = {
+                ...genericTypeNode.children[1],
+                children: [...genericTypeNode.children[1].children],
+            };
+            newTypeArguments.children = newTypeArguments.children.map((child) => {
+                const ignoredNodes = ['<', '>', ','];
+                if (ignoredNodes.includes(child.type))
+                    return child;
+                if (child.type === 'type_identifier')
+                    return this.transformTypeIdentifier(child);
+                if (child.type === 'generic_type')
+                    return this.transformGenericTypeIdentifier(child);
+                throw new Error(child.type + ' is not a supported generic type');
+            });
+            return newGenericTypeNode;
+        };
+        this.registerClassFieldDeclarations = () => {
+            this.applyToNodesOfType({ public_field_definition: this.registerPublicFieldDefinition });
+        };
+        this.registerPublicFieldDefinition = (node) => {
+            const idNodeIndex = node.children.findIndex(util_1.typeIs('property_identifier'));
+            const idNode = node.children[idNodeIndex];
+            const newExprNode = node.children.find(util_1.typeIs('new_expression'));
+            // TODO: Hva med generics? new A<B>(); Kanskje nok med en pass over type_identifiers?
+            const instanceOf = newExprNode?.children.find(util_1.typeIs('identifier'))?.text;
+            const fieldRef = idNode.scope.defineVariable(idNode.text, instanceOf);
+            const fieldDefinitionRef = new RefNode({
+                origType: idNode.type,
+                ref: fieldRef,
+                scope: node.scope,
+            });
+            const newChildren = [...node.children];
+            newChildren[idNodeIndex] = fieldDefinitionRef;
+            return { ...node, children: newChildren };
+        };
+        this.registerReferences = () => {
+            this.applyToNodesOfType({
+                this: this.transformThis,
+            });
+            this.applyToNodesOfType({
+                new_expression: this.registerNewExpression,
+                member_expression: this.registerMemberExpression,
+            });
+        };
+        // TODO: Support type expressions
+        this.registerNewExpression = (newExprNode) => {
+            const idIndex = newExprNode.children.findIndex((c) => c.type === 'identifier');
+            const idNode = newExprNode.children[idIndex];
+            const decl = idNode.scope.lookup(idNode.text);
             if (decl === undefined) {
-                throw new Error(`Cannot instantiate undefined class, ${id.text}`);
+                throw new Error(`Cannot instantiate undefined class, ${idNode.text}`);
             }
-            const newId = {
-                type: 'variable',
-                origType: id.type,
-                var: decl,
-                children: [],
-                scope: id.scope,
-            };
-            return {
-                ...node,
-                children: util_1.replace(children, newId, (el) => el === id),
-            };
-        },
-        this: (node) => ({
-            type: 'variable',
-            origType: node.type,
-            var: node.scope.lookup('this'),
-            children: [],
-            scope: node.scope,
-        }),
-        member_expression: (node, children) => {
-            if (children[MEMBER_OF].type === 'variable') {
-                return memberOfVariable(node, children);
+            const newId = new RefNode({
+                origType: idNode.type,
+                scope: idNode.scope,
+                ref: decl,
+            });
+            const newChildren = [...newExprNode.children];
+            newChildren[idIndex] = newId;
+            return { ...newExprNode, children: newChildren };
+        };
+        this.transformThis = (thisNode) => {
+            const thisRef = thisNode.scope.lookup('this');
+            if (thisRef === undefined) {
+                throw new Error("'this' is undefined");
             }
-            else if (children[MEMBER_OF].type === 'member_expression') {
-                return memberOfMember(node, children);
+            return new RefNode({
+                ref: thisRef,
+                scope: thisNode.scope,
+                origType: thisNode.type,
+            });
+        };
+        this.registerMemberExpression = (memberExprNode) => {
+            if (memberExprNode.children[MEMBER_OF].type === 'variable') {
+                // this.i or a.i
+                return this.memberOfVariable(memberExprNode);
             }
-            else if (children[MEMBER_OF].type === 'identifier') {
-                return memberOfIdentifier(node, children);
+            else if (memberExprNode.children[MEMBER_OF].type === 'member_expression') {
+                // this.a.i or a.j.k or A.B.j.k
+                return this.memberOfMember(memberExprNode);
+            }
+            else if (memberExprNode.children[MEMBER_OF].type === 'identifier') {
+                // console.log
+                return this.memberOfIdentifier(memberExprNode);
             }
             else {
-                throw new Error('Unhandled member_expression. children[MEMBER_OF].type = ' + children[MEMBER_OF].type);
+                throw new Error('Unhandled member_expression. children[MEMBER_OF].type = ' + memberExprNode.children[MEMBER_OF].type);
             }
-        },
-        default: util_1.idTransform,
-    });
-    return registerRefs;
-}
-exports.default = transformVariableRefs;
-function registerDeclarations(astNode) {
-    const nodeWithClassDeclsRegistered = registerClassDeclarations(astNode);
-    return registerRestOfTheDeclarations(nodeWithClassDeclsRegistered);
-}
-function registerClassDeclarations(astNode) {
-    return index_1.default(astNode, {
-        class_declaration: (node, children) => {
-            const tId = findLast(children, util_1.typeIs('type_identifier'));
-            const classScope = children.find((el) => el.type === 'class_body').scope;
-            const varDecl = node.scope.defineClass(tId.text || '', classScope);
-            classScope.defineVariable('this', tId.text);
-            const astVarNode = {
-                type: 'variable',
-                origType: tId.type,
-                var: varDecl,
-                children: [],
-                scope: node.scope,
-            };
-            return {
-                ...node,
-                children: util_1.replace(children, astVarNode, (el) => el === tId),
-            };
-        },
-        default: util_1.idTransform,
-    });
-}
-function registerRestOfTheDeclarations(nodeWithClassDeclsRegistered) {
-    return index_1.default(nodeWithClassDeclsRegistered, {
-        // Register superclass
-        class_declaration: (node, children) => {
-            // TODO: Add implementing interfaces
-            const cl = children.find((el) => el.type === 'variable').var;
-            const heritage = children.find((el) => el.type === 'class_heritage')?.children[0].children?.filter((c) => c.type === 'variable');
-            const superClass = heritage?.map((el) => el.var).find((el) => el instanceof Class_1.default);
-            if (superClass !== undefined) {
-                cl.addSuperClass(superClass);
+        };
+        this.memberOfVariable = (node) => {
+            const refNode = node.children[MEMBER_OF];
+            const id = node.children[MEMBER];
+            const fieldClass = refNode.ref.instanceOf;
+            if (fieldClass === undefined) {
+                // the variable is probably a object, which we can not rename at the moment.
+                return node;
             }
-            return { ...node, children };
-        },
-        extends_clause: (node, children) => {
-            const ids = children.filter((c) => c.type === 'identifier' || c.type === 'type_identifier');
-            const newChildren = ids.reduce((prev, _id) => {
-                const id = _id;
-                const decl = id.scope.lookup(id.text);
-                if (decl === undefined) {
-                    throw new Error(`Cannot extend undefined class, ${id.text}`);
-                }
-                const newId = {
-                    type: 'variable',
-                    origType: id.type,
-                    var: decl,
-                    children: [],
-                    scope: id.scope,
-                };
-                return util_1.replace(prev, newId, (el) => el === _id);
-            }, children);
+            const varDecl = fieldClass.lookup(id.text);
+            if (varDecl === undefined) {
+                throw new Error(`${id.text} does not exist on this`); // Kanskje bedre å bare la typescript ta seg av denne?
+            }
+            const newId = new RefNode({
+                origType: id.type,
+                ref: varDecl,
+                scope: id.scope,
+            });
+            const newChildren = [...node.children];
+            newChildren[MEMBER] = newId;
             return {
                 ...node,
                 children: newChildren,
             };
-        },
-        public_field_definition: (node, children) => {
-            const id = children.find((c) => c.type === 'property_identifier');
-            const newExpr = children.find((c) => c.type === 'new_expression');
-            let instanceOf;
-            if (newExpr !== undefined && newExpr.type === 'new_expression') {
-                const instId = newExpr.children.find((c) => c.type === 'identifier');
-                instanceOf = instId.text;
+        };
+        this.memberOfMember = (node) => {
+            const id = node.children[MEMBER];
+            const memberOfMemberNode = this.registerMemberExpression(node.children[MEMBER_OF]);
+            const memberOf = memberOfMemberNode.children[MEMBER];
+            const memberOfInstance = memberOf.ref.instanceOf;
+            if (memberOfInstance === undefined) {
+                // I'm a member of something we can not rename, i.e. object, console.log, etc.
+                return node;
             }
-            const decl = {
-                type: 'variable',
+            const varDecl = memberOfInstance.lookup(id.text);
+            if (varDecl === undefined) {
+                throw new Error(`${id.text} does not exist on class ${memberOfInstance.origName}`);
+            }
+            const newId = new RefNode({
                 origType: id.type,
-                var: id.scope.defineVariable(id.text, instanceOf),
-                children: [],
-                scope: node.scope,
-            };
+                ref: varDecl,
+                scope: id.scope,
+            });
+            const newChildren = [...node.children];
+            newChildren[MEMBER] = newId;
             return {
                 ...node,
-                children: util_1.replace(children, decl, (c) => c === id),
+                children: newChildren,
             };
-        },
-        default: util_1.idTransform,
-    });
+        };
+        this.memberOfIdentifier = (node) => {
+            const memberOfId = node.children[MEMBER_OF];
+            const memberId = node.children[MEMBER];
+            const memberOfVarDecl = node.scope.lookup(memberOfId.text);
+            if (memberOfVarDecl === undefined || memberOfVarDecl.instanceOf === undefined) {
+                // I'm something that can not be renamed, i.e. console.log
+                return node;
+            }
+            const memberVarDecl = memberOfVarDecl.instanceOf.lookup(memberId.text);
+            if (memberVarDecl === undefined) {
+                throw new Error(`${memberId.text} does not exist on object ${memberOfId.text}`);
+            }
+            const memberOfRefNode = new RefNode({
+                origType: memberOfId.type,
+                ref: memberOfVarDecl,
+                scope: memberOfId.scope,
+            });
+            const memberRefNode = new RefNode({
+                origType: memberId.type,
+                ref: memberVarDecl,
+                scope: memberId.scope,
+            });
+            return {
+                ...node,
+                children: [memberOfRefNode, node.children[1], memberRefNode],
+            };
+        };
+        this.program = program;
+    }
 }
-function memberOfVariable(node, children) {
-    // this.i or a.i
-    const varNode = children[MEMBER_OF];
-    const id = children[MEMBER];
-    const fieldClass = varNode.var.instanceOf;
-    if (fieldClass === undefined) {
-        // the variable is probably a object, which we can not rename at the moment.
-        return { ...node, children };
-    }
-    const varDecl = fieldClass.lookup(id.text);
-    if (varDecl === undefined) {
-        throw new Error(`${id.text} does not exist on this`); // Kanskje bedre å bare la typescript ta seg av denne?
-    }
-    const newId = {
-        type: 'variable',
-        origType: id.type,
-        var: varDecl,
-        children: [],
-        scope: id.scope,
-    };
-    const newChildren = [...children];
-    newChildren[MEMBER] = newId;
-    return {
-        ...node,
-        children: newChildren,
-    };
-}
-function memberOfMember(node, children) {
-    // this.a.i, a.i.j, etc
-    const id = children[MEMBER];
-    const memberOf = children[MEMBER_OF].children[MEMBER];
-    const memberOfInstance = memberOf.var.instanceOf;
-    if (memberOfInstance === undefined) {
-        // I'm a member of something we can not rename, i.e. object, console.log, etc.
-        return { ...node, children };
-    }
-    const varDecl = memberOfInstance.lookup(id.text);
-    if (varDecl === undefined) {
-        throw new Error(`${id.text} does not exist on class ${memberOfInstance.origName}`);
-    }
-    const newId = {
-        type: 'variable',
-        origType: id.type,
-        var: varDecl,
-        children: [],
-        scope: id.scope,
-    };
-    return {
-        ...node,
-        children: util_1.replace(children, newId, (el) => el === id),
-    };
-}
-function memberOfIdentifier(node, children) {
-    // TODO: Can this happen? How is this different from memberOfVariable?
-    // a.i
-    const memberOfId = children[MEMBER_OF];
-    const memberId = children[2];
-    console.log('memberOfIdentifier?', memberOfId.text + '.' + memberId.text);
-    const memberOfVarDecl = node.scope.lookup(memberOfId.text);
-    if (memberOfVarDecl === undefined || memberOfVarDecl.instanceOf === undefined) {
-        // I'm something that can not be renamed, i.e. console.log
-        return { ...node, children };
-    }
-    const memberVarDecl = memberOfVarDecl.instanceOf.lookup(memberId.text);
-    if (memberVarDecl === undefined) {
-        throw new Error(`${memberId.text} does not exist on object ${memberOfId.text}`);
-    }
-    const memberOfVarNode = {
-        type: 'variable',
-        origType: memberOfId.type,
-        var: memberOfVarDecl,
-        children: [],
-        scope: node.scope,
-    };
-    const memberVarNode = {
-        type: 'variable',
-        origType: memberId.type,
-        var: memberVarDecl,
-        children: [],
-        scope: node.scope,
-    };
-    return {
-        ...node,
-        children: [memberOfVarNode, children[1], memberVarNode],
-    };
+exports.default = ReferenceTransformer;
+ReferenceTransformer.transform = (program) => {
+    const referenceTransformer = new ReferenceTransformer(program);
+    referenceTransformer.registerDeclarations();
+    referenceTransformer.registerReferences();
+    return referenceTransformer.program;
+};
+function getHeritageNodes(heritageNode) {
+    const extendsClause = heritageNode.children.find(util_1.typeIs('extends_clause'));
+    const implementsClause = heritageNode.children.find(util_1.typeIs('implements_clause'));
+    return { extendsClause, implementsClause };
 }

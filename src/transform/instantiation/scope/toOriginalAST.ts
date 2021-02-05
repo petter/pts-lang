@@ -1,17 +1,17 @@
 import transform from '../../index';
 import { ASTNode } from '../../../AST';
-import { ScopedVariableAST } from './transformVariableRefs';
+import { ScopedRefNode } from './transformVariableRefs';
 import Variable from './Variable';
 
-export default function toOriginalAST(program: ScopedVariableAST | ScopedVariableAST[]): ASTNode | ASTNode[] {
+export default function toOriginalAST(program: ScopedRefNode | ScopedRefNode[]): ASTNode | ASTNode[] {
     if (Array.isArray(program)) {
         return program.map(toOriginalAST) as ASTNode[];
     }
 
-    return transform<ScopedVariableAST, ASTNode>(program, {
+    return transform<ScopedRefNode, ASTNode>(program, {
         variable: (node: any, children) => ({
             type: node.origType,
-            text: (node.var as Variable).toString(),
+            text: (node.ref as Variable).toString(),
             children,
         }),
         default: (node: any, children) => ({

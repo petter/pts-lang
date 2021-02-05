@@ -1,6 +1,6 @@
 import { ASTNode } from '../../../AST';
 import Scope from './Scope';
-import transformVariableRefs, { ScopedVariableAST } from './transformVariableRefs';
+import ReferenceTransformer, { ScopedRefNode } from './transformVariableRefs';
 
 export interface ScopedAST extends ASTNode {
     scope: Scope;
@@ -23,16 +23,16 @@ const nodesWithScope = [
 const shouldNodeHaveOwnScope = (node: { type: string }) => nodesWithScope.includes(node.type);
 
 export default class ASTScoper {
-    program: ASTNode;
+    private program: ASTNode;
 
-    constructor(program: ASTNode) {
+    private constructor(program: ASTNode) {
         this.program = program;
     }
 
-    public static transform(program: ASTNode): ScopedVariableAST {
+    public static transform(program: ASTNode): ScopedRefNode {
         const astScoper = new ASTScoper(program);
         const scopedAst = astScoper.scopeProgram();
-        return transformVariableRefs(scopedAst);
+        return ReferenceTransformer.transform(scopedAst);
     }
 
     private scopeProgram = (): ScopedAST => {
