@@ -10,7 +10,7 @@ template T {
     
     class X {
         isA(object: any) : object is A {
-            return 'i' in object;
+            return "i" in object;
         }
     }
 }
@@ -23,10 +23,9 @@ package P {
     const expected = `class B {
     i = 0;
 }
-
 class X {
-    isA(object: any) : object is B {
-        return 'i' in object;
+    isA(object: any): object is B {
+        return "i" in object;
     }
 }
 `;

@@ -24,7 +24,6 @@ package P {
     const expected = `class B {
     i = 0;
 }
-
 class X {
     a: B = new B();
     constructor(a: B) {
