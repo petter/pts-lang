@@ -1,0 +1,17 @@
+template T {
+    class A {
+        i = 0;
+    }
+
+    class X {
+        a : A;
+        constructor(a : A) {
+            this.a = a;
+        }
+    }
+}
+
+package P {
+    inst T { A -> B };
+    inst T { A -> C, X -> Y (a -> c)  };
+}

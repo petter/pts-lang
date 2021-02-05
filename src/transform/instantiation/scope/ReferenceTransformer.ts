@@ -149,6 +149,14 @@ export default class ReferenceTransformer {
         return { ...node, children: newChildren };
     };
 
+    private transformType = (node: Readonly<ScopedRefNode>): ScopedRefNode => {
+        if (node.type === 'type_identifier') return this.transformTypeIdentifier(node);
+        if (node.type === 'generic_type') return this.transformGenericTypeIdentifier(node);
+        if (node.type === 'predefined_type') return node;
+        if (node.type === 'type_predicate') return this.transformTypePredicate(node);
+        throw new Error('Unsupported type: ' + node.type);
+    };
+
     private transformTypeIdentifier = (typeIdentifierNode: ScopedRefNode): ScopedRefNode => {
         const classRef = typeIdentifierNode.scope.lookupClass(typeIdentifierNode.text);
         if (classRef === undefined) return typeIdentifierNode;
@@ -173,12 +181,19 @@ export default class ReferenceTransformer {
         newTypeArguments.children = newTypeArguments.children.map((child) => {
             const ignoredNodes = ['<', '>', ','];
             if (ignoredNodes.includes(child.type)) return child;
-            if (child.type === 'type_identifier') return this.transformTypeIdentifier(child);
-            if (child.type === 'generic_type') return this.transformGenericTypeIdentifier(child);
-            throw new Error(child.type + ' is not a supported generic type');
+            return this.transformType(child);
         });
 
         return newGenericTypeNode;
+    };
+
+    private transformTypePredicate = (node: Readonly<ScopedRefNode>): ScopedRefNode => {
+        const TYPE_INDEX = 2;
+
+        const newChildren = [...node.children];
+        newChildren[TYPE_INDEX] = this.transformType(newChildren[TYPE_INDEX]);
+
+        return { ...node, children: newChildren };
     };
 
     private registerClassFieldDeclarations = () => {
@@ -213,6 +228,7 @@ export default class ReferenceTransformer {
         this.applyToNodesOfType({
             new_expression: this.registerNewExpression,
             member_expression: this.registerMemberExpression,
+            type_annotation: this.transformTypeAnnotation,
         });
     };
 
@@ -357,6 +373,15 @@ export default class ReferenceTransformer {
             ...node,
             children: [memberOfRefNode, node.children[1], memberRefNode],
         };
+    };
+
+    private transformTypeAnnotation = (node: Readonly<ScopedRefNode>): ScopedRefNode => {
+        const TYPE_INDEX = 1;
+
+        const newChildren = [...node.children];
+        newChildren[TYPE_INDEX] = this.transformType(newChildren[TYPE_INDEX]);
+
+        return { ...node, children: newChildren };
     };
 }
 
