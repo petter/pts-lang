@@ -3,7 +3,7 @@ import transform from '../index';
 import { identifierIs, idTransform, typeIs } from '../../util';
 import getTemplates, { Template } from '../../util/getTemplates';
 import rename from './rename';
-import mergeClasses from '../mergeClasses';
+import ClassDeclarationMerger from '../mergeClasses';
 
 export default class InstantiationTransformer {
     private program: ASTNode;
@@ -17,7 +17,8 @@ export default class InstantiationTransformer {
     public static transform(program: ASTNode): ASTNode {
         const templates = getTemplates(program);
         const instantiationTransformer = new InstantiationTransformer(program, templates);
-        return instantiationTransformer.transformPackageTemplateDecls();
+        const instTransformedProgram = instantiationTransformer.transformPackageTemplateDecls();
+        return ClassDeclarationMerger.transform(instTransformedProgram);
     }
 
     private transformPackageTemplateDecls = (): ASTNode => {
@@ -29,11 +30,11 @@ export default class InstantiationTransformer {
     };
 
     private transformPackageTemplate = (node: ASTNode | null, children: ASTNode[]): ASTNode => {
-        const newChildren = transform(children, {
+        const childrenWithInstTransformed = transform(children, {
             inst_statement: this.transformInstStatement,
             default: idTransform,
-        });
-        return { ...(node ?? {}), children: newChildren } as ASTNode;
+        }) as ASTNode[];
+        return { ...(node ?? {}), children: childrenWithInstTransformed } as ASTNode;
     };
 
     private transformInstStatement = (_: ASTNode, children: ASTNode[]): ASTNode | ASTNode[] => {
@@ -49,8 +50,7 @@ export default class InstantiationTransformer {
 
         const body = this.getClosedTemplateBody(template);
         const renamedBody = rename(renamings, body);
-        const mergedClassesBody = mergeClasses(renamedBody);
-        return mergedClassesBody;
+        return renamedBody;
     };
 
     private getClosedTemplateBody = (template: Template): ASTNode[] => {

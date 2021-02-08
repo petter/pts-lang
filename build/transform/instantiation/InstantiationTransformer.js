@@ -18,11 +18,11 @@ class InstantiationTransformer {
             });
         };
         this.transformPackageTemplate = (node, children) => {
-            const newChildren = index_1.default(children, {
+            const childrenWithInstTransformed = index_1.default(children, {
                 inst_statement: this.transformInstStatement,
                 default: util_1.idTransform,
             });
-            return { ...(node ?? {}), children: newChildren };
+            return { ...(node ?? {}), children: childrenWithInstTransformed };
         };
         this.transformInstStatement = (_, children) => {
             const instId = this.getIdentifier(children, 'Instantiation is instantiating something without an identifier.');
@@ -34,8 +34,7 @@ class InstantiationTransformer {
             }
             const body = this.getClosedTemplateBody(template);
             const renamedBody = rename_1.default(renamings, body);
-            const mergedClassesBody = mergeClasses_1.default(renamedBody);
-            return mergedClassesBody;
+            return renamedBody;
         };
         this.getClosedTemplateBody = (template) => {
             if (template.isClosed)
@@ -62,7 +61,8 @@ class InstantiationTransformer {
     static transform(program) {
         const templates = getTemplates_1.default(program);
         const instantiationTransformer = new InstantiationTransformer(program, templates);
-        return instantiationTransformer.transformPackageTemplateDecls();
+        const instTransformedProgram = instantiationTransformer.transformPackageTemplateDecls();
+        return mergeClasses_1.default.transform(instTransformedProgram);
     }
 }
 exports.default = InstantiationTransformer;

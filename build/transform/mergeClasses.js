@@ -1,73 +1,134 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = __importStar(require("./index"));
 const util_1 = require("../util");
 const lodash_1 = __importDefault(require("lodash"));
-const classDeclId = (cld) => cld.children.find(util_1.typeIs('type_identifier')).text;
-function mergeClasses(program) {
-    return index_1.default(program, {
-        package_template_body: (node, children) => {
-            const classes = children.filter((c) => c.type === 'class_declaration');
-            // TODO: Check if two classes can be merged (have different heritage?)
-            const classGroups = lodash_1.default.groupBy(classes, classDeclId);
-            const mergedClasses = mergeClassGroups(classGroups);
-            return util_1.idTransform(node, replaceClassDeclsWithMergedClasses(children, mergedClasses));
-        },
-        default: util_1.idTransform,
-    });
-}
-exports.default = mergeClasses;
-function mergeClassGroups(classGroups) {
-    return Object.values(classGroups).map(mergeClassesInGroups);
-}
-function mergeClassesInGroups(classGroup) {
-    const bodies = classGroup.map((n) => n.children.filter((el) => el.type === 'class_body').flatMap((el) => el.children));
-    const mergedBodies = [
-        bodies[0][0],
-        ...bodies.reduce((prev, cur) => prev.concat(cur.slice(1, -1)), []),
-        bodies[0][bodies[0].length - 1],
-    ];
-    const resultClass = classGroup[0];
-    resultClass.children.find((el) => el.type === 'class_body').children = mergedBodies;
-    return resultClass;
-}
-function replaceClassDeclsWithMergedClasses(body, mergedClasses) {
-    const hasVisited = [];
-    return index_1.default(body, {
-        class_declaration: (node, children) => {
-            const id = classDeclId(node);
-            if (hasVisited.includes(id)) {
-                return index_1.EMPTY_NODE;
+const classDeclId = (classDecl) => classDecl.children.find(util_1.typeIs('type_identifier')).text;
+class ClassDeclarationMerger {
+    constructor(program) {
+        this.applyToNodesOfType = (typeFuncMap) => {
+            function applyToNodesOfTypeRecurse(node) {
+                let newNode = node;
+                if (node.type in typeFuncMap) {
+                    newNode = typeFuncMap[node.type](node);
+                }
+                const newChildren = newNode.children.map(applyToNodesOfTypeRecurse);
+                return { ...newNode, children: newChildren };
             }
-            hasVisited.push(id);
-            const mergedClass = mergedClasses.find((el) => classDeclId(el) === id);
-            if (mergedClass === undefined) {
-                return util_1.idTransform(node, children);
-            }
-            return mergedClass;
-        },
-        default: util_1.idTransform,
-    });
+            this.program = applyToNodesOfTypeRecurse(this.program);
+        };
+        this.mergeClasses = () => {
+            this.applyToNodesOfType({
+                package_template_body: this.mergeClassesInPTBody,
+            });
+            return this.program;
+        };
+        this.mergeClassesInPTBody = (node) => {
+            const groupedClassDecls = this.groupClassDeclarations(node.children);
+            const hasMergedClass = {};
+            const classesMergedBody = util_1.filterMap(node.children, (child) => {
+                if (child.type === 'class_declaration') {
+                    const classId = classDeclId(child);
+                    if (hasMergedClass[classId]) {
+                        return null;
+                    }
+                    else {
+                        hasMergedClass[classId] = true;
+                        return this.produceClassDeclaration(groupedClassDecls[classId]);
+                    }
+                }
+                else {
+                    return child;
+                }
+            });
+            return { ...node, children: classesMergedBody };
+        };
+        this.produceClassDeclaration = (classDecls) => {
+            const classBody = this.produceClassDeclarationBody(classDecls);
+            return this.produceClassDeclarationSignature(classDecls, classBody);
+        };
+        this.produceClassDeclarationBody = (classDecls) => {
+            const classBodiesWithBrackets = classDecls.map((decl) => decl.children.find(util_1.typeIs('class_body'))?.children || []);
+            const classBodiesWithoutBrackets = classBodiesWithBrackets.map((el) => el.slice(1, -1));
+            const openingBracket = classBodiesWithBrackets[0][0];
+            const closingBracket = classBodiesWithBrackets[0][classBodiesWithBrackets[0].length - 1];
+            return [openingBracket, ...classBodiesWithoutBrackets.reduce(util_1.joinArrays), closingBracket];
+        };
+        this.produceClassDeclarationSignature = (classDecls, classBody) => {
+            // TODO: Merge heritage
+            const resNode = { ...classDecls[0] };
+            return {
+                ...resNode,
+                children: resNode.children.map((el) => (el.type === 'class_body' ? { ...el, children: classBody } : el)),
+            };
+        };
+        this.groupClassDeclarations = (nodes) => {
+            const classDeclarations = nodes.filter(util_1.typeIs('class_declaration'));
+            return lodash_1.default.groupBy(classDeclarations, classDeclId);
+        };
+        this.program = program;
+    }
+    static transform(program) {
+        const classDeclarationMerger = new ClassDeclarationMerger(program);
+        return classDeclarationMerger.mergeClasses();
+    }
 }
+exports.default = ClassDeclarationMerger;
+// export default function mergeClasses(program: ASTNode) : ASTNode {
+//     return transform(program, {
+//         package_template_body: (node, children) => {
+//             const classes = children.filter(typeIs('class_declaration'));
+//
+//             // TODO: Check if two classes can be merged (have different heritage?)
+//
+//             const classGroups = _.groupBy<ASTNode>(classes, classDeclId);
+//             const mergedClasses = mergeClassGroups(classGroups);
+//             return replaceClassDeclsWithMergedClasses(children, mergedClasses);
+//
+//         },
+//         default: idTransform
+//     })
+// }
+//
+// function mergeClassGroups(classGroups: _.Dictionary<ASTNode[]>) {
+//     return Object.values(classGroups).map(mergeClassesInGroups);
+// }
+//
+// function mergeClassesInGroups(classGroup: ASTNode[]) {
+//     console.log(classGroup)
+//     const bodies = classGroup.map((n) =>
+//         n.children.filter(typeIs('class_body')).flatMap((el) => el.children),
+//     );
+//     const mergedBodies = [
+//         bodies[0][0],
+//         ...bodies.reduce((prev, cur) => prev.concat(cur.slice(1, -1)), []),
+//         bodies[0][bodies[0].length - 1],
+//     ];
+//
+//     const resultClass = classGroup[0];
+//     resultClass.children.find(typeIs('class_body'))!.children = mergedBodies;
+//     return resultClass;
+// }
+//
+// function replaceClassDeclsWithMergedClasses(body: ASTNode[], mergedClasses: ASTNode[]) {
+//     const hasVisited: string[] = [];
+//     return transform(body, {
+//         class_declaration: (node, children) => {
+//             const id = classDeclId(node);
+//             if (hasVisited.includes(id)) {
+//                 return EMPTY_NODE;
+//             }
+//             hasVisited.push(id);
+//
+//             const mergedClass = mergedClasses.find((el) => classDeclId(el) === id);
+//             if (mergedClass === undefined) {
+//                 return idTransform(node, children);
+//             }
+//
+//             return mergedClass;
+//         },
+//         default: idTransform,
+//     });
+// }

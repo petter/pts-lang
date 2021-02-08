@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.identifierIs = exports.typeIs = exports.replace = exports.idTransform = void 0;
+exports.joinArrays = exports.filterMap = exports.filterNull = exports.isNotNull = exports.identifierIs = exports.typeIs = exports.replace = exports.idTransform = void 0;
 const idTransform = (node, children) => ({ ...node, children: children.flat() });
 exports.idTransform = idTransform;
 function replace(elements, replaceWith, check) {
@@ -11,3 +11,20 @@ const typeIs = (type) => (objectWithType) => objectWithType.type === type;
 exports.typeIs = typeIs;
 const identifierIs = (identifier) => (objectWithIdentifier) => objectWithIdentifier.identifier === identifier;
 exports.identifierIs = identifierIs;
+function isNotNull(something) {
+    return something !== null;
+}
+exports.isNotNull = isNotNull;
+function filterNull(elements) {
+    return elements.filter(isNotNull);
+}
+exports.filterNull = filterNull;
+function filterMap(elements, func) {
+    const mappedElements = elements.map(func);
+    return filterNull(mappedElements);
+}
+exports.filterMap = filterMap;
+function joinArrays(a, b) {
+    return [...a, ...b];
+}
+exports.joinArrays = joinArrays;

@@ -13,6 +13,7 @@ import { ASTNode, toAST } from './AST';
 import transform, { Transformer } from './transform';
 import InstantiationTransformer from './transform/instantiation/InstantiationTransformer';
 import toTS from './transform/toTS';
+import mergeClasses from './transform/mergeClasses';
 
 const parser = new Parser();
 parser.setLanguage(PTS);

@@ -20,3 +20,7 @@ export function filterMap<T>(elements: T[], func: (el: T) => T | null) {
     const mappedElements = elements.map(func);
     return filterNull(mappedElements);
 }
+
+export function joinArrays<T>(a: T[], b: T[]): T[] {
+    return [...a, ...b];
+}
