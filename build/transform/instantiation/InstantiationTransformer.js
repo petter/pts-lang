@@ -7,7 +7,7 @@ const index_1 = __importDefault(require("../index"));
 const util_1 = require("../../util");
 const getTemplates_1 = __importDefault(require("../../util/getTemplates"));
 const rename_1 = __importDefault(require("./rename"));
-const mergeClasses_1 = __importDefault(require("../mergeClasses"));
+const ClassDeclarationMerger_1 = __importDefault(require("../ClassDeclarationMerger"));
 class InstantiationTransformer {
     constructor(program, templates) {
         this.transformPackageTemplateDecls = () => {
@@ -62,7 +62,7 @@ class InstantiationTransformer {
         const templates = getTemplates_1.default(program);
         const instantiationTransformer = new InstantiationTransformer(program, templates);
         const instTransformedProgram = instantiationTransformer.transformPackageTemplateDecls();
-        return mergeClasses_1.default.transform(instTransformedProgram);
+        return ClassDeclarationMerger_1.default.transform(instTransformedProgram);
     }
 }
 exports.default = InstantiationTransformer;

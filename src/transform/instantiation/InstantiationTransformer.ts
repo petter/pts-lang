@@ -3,7 +3,7 @@ import transform from '../index';
 import { identifierIs, idTransform, typeIs } from '../../util';
 import getTemplates, { Template } from '../../util/getTemplates';
 import rename from './rename';
-import ClassDeclarationMerger from '../mergeClasses';
+import ClassDeclarationMerger from '../ClassDeclarationMerger';
 
 export default class InstantiationTransformer {
     private program: ASTNode;
