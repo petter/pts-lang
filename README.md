@@ -1,5 +1,38 @@
 # PTS (Package Template Script) / An implementation of Package Templates in TypeScript
 
+## Using PTS in a project
+
+Initialize the project
+
+```
+mkdir <name of project>
+cd <name of project>
+npm init -Y
+npm install https://github.com/petter/pts
+```
+
+Add a start and/or build script to `package.json`:
+
+```json
+{
+  ...
+  "scripts": {
+    ...
+    "start": "pts -i src/index.pts --run",
+    "build": "pts -i src/index.pts -o build/index"
+  }
+}
+```
+
+The start script only runs the program, and doesn't emit any files, while the build script transpiles the `src/index.pts` file to JavaScript.
+If you'd rather have TypeScript as output you can use `-t`:
+
+```bash
+pts -i src/index.pts -o build/index -t ts
+```
+
+## TODOs
+
 - [x] Instantiating closed templates
 - [x] Renaming classes
   - [x] Rename class declarations
@@ -15,9 +48,9 @@
 - [ ] Merging classes
   - [x] Merge bodies of two classes
   - [ ] Checking if it is valid to merge classes (Do they have different heritage?)
-    - [ ] If one class has heritage while the other doesn't, choose the signature of the class with heritage
+  - [ ] Merge heritage
 - [ ] Addto statements
+  - [x] Check if the class to be added to exists
+  - [x] Merge bodies of the class and addto-statement
   - [ ] Add implementing interfaces and extended classes to the class
-  - [ ] Check if the class to be added to exists
-  - [ ] Merge bodies of the class and addto-statement
 - [ ] Validating templates
