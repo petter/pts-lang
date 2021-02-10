@@ -27,9 +27,10 @@ class ClassDeclarationMerger {
         };
         this.mergeClassesInPTBody = (node) => {
             const groupedClassDecls = this.groupClassDeclarations(node.children);
+            this.verifyAddtoValid(groupedClassDecls);
             const hasMergedClass = {};
             const classesMergedBody = util_1.filterMap(node.children, (child) => {
-                if (child.type === 'class_declaration') {
+                if (util_1.typeIs(['class_declaration', 'addto_statement'])(child)) {
                     const classId = classDeclId(child);
                     if (hasMergedClass[classId]) {
                         return null;
@@ -45,6 +46,17 @@ class ClassDeclarationMerger {
             });
             return { ...node, children: classesMergedBody };
         };
+        this.groupClassDeclarations = (nodes) => {
+            const classDeclarations = nodes.filter(util_1.typeIs(['class_declaration', 'addto_statement']));
+            return lodash_1.default.groupBy(classDeclarations, classDeclId);
+        };
+        this.verifyAddtoValid = (groups) => {
+            Object.keys(groups).forEach(key => this.verifyAddtoValidGroup(key, groups[key]));
+        };
+        this.verifyAddtoValidGroup = (className, group) => {
+            if (group.every(util_1.typeIs('addto_statement')))
+                throw new Error(`Can\'t addto class ${className} as there is no class declaration for ${className}`);
+        };
         this.produceClassDeclaration = (classDecls) => {
             const classBody = this.produceClassDeclarationBody(classDecls);
             return this.produceClassDeclarationSignature(classDecls, classBody);
@@ -58,15 +70,11 @@ class ClassDeclarationMerger {
         };
         this.produceClassDeclarationSignature = (classDecls, classBody) => {
             // TODO: Merge heritage
-            const resNode = { ...classDecls[0] };
+            const resNode = { ...classDecls.find(util_1.typeIs('class_declaration')) };
             return {
                 ...resNode,
                 children: resNode.children.map((el) => (el.type === 'class_body' ? { ...el, children: classBody } : el)),
             };
-        };
-        this.groupClassDeclarations = (nodes) => {
-            const classDeclarations = nodes.filter(util_1.typeIs('class_declaration'));
-            return lodash_1.default.groupBy(classDeclarations, classDeclId);
         };
         this.program = program;
     }

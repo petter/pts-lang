@@ -1,0 +1,12 @@
+template T {
+    class A {
+        i = 0;
+    }
+}
+
+package P {
+    inst T;
+    addto A {
+        j = 0;
+    }
+}

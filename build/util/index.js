@@ -7,7 +7,11 @@ function replace(elements, replaceWith, check) {
     return elements.map((el) => (check(el) ? replaceWith : el));
 }
 exports.replace = replace;
-const typeIs = (type) => (objectWithType) => objectWithType.type === type;
+const typeIs = (type) => (objectWithType) => {
+    if (Array.isArray(type))
+        return type.some(el => objectWithType.type === el);
+    return objectWithType.type === type;
+};
 exports.typeIs = typeIs;
 const identifierIs = (identifier) => (objectWithIdentifier) => objectWithIdentifier.identifier === identifier;
 exports.identifierIs = identifierIs;
