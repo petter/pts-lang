@@ -3,7 +3,7 @@ template T {
         i = 0;
 
         f() {
-            console.log(i);
+            console.log(this.i);
         }
     }
 }

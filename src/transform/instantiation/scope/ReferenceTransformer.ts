@@ -265,6 +265,21 @@ export default class ReferenceTransformer {
         });
     };
 
+    private transformIdentifier = (node: Readonly<ScopedRefNode>): ScopedRefNode => {
+        const identifier = node.text;
+        const maybeRef = node.scope.lookup(identifier);
+
+        if (maybeRef === undefined) {
+            return node;
+        }
+
+        return new RefNode({
+            scope: node.scope,
+            origType: node.type,
+            ref: maybeRef,
+        });
+    };
+
     private registerMemberExpression = (memberExprNode: ScopedRefNode): ScopedRefNode => {
         if (memberExprNode.children[MEMBER_OF].type === 'variable') {
             // this.i or a.i

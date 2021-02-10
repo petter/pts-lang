@@ -214,6 +214,18 @@ class ReferenceTransformer {
                 origType: thisNode.type,
             });
         };
+        this.transformIdentifier = (node) => {
+            const identifier = node.text;
+            const maybeRef = node.scope.lookup(identifier);
+            if (maybeRef === undefined) {
+                return node;
+            }
+            return new RefNode({
+                scope: node.scope,
+                origType: node.type,
+                ref: maybeRef,
+            });
+        };
         this.registerMemberExpression = (memberExprNode) => {
             if (memberExprNode.children[MEMBER_OF].type === 'variable') {
                 // this.i or a.i

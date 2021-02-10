@@ -8,7 +8,7 @@ template T {
         i = 0;
         
         f() {
-            console.log(i);
+            console.log(this.i);
         }
     }
 }
@@ -21,7 +21,7 @@ package P {
     const expected = `class A {
     j = 0;
     f() {
-        console.log(j);
+        console.log(this.j);
     }
 }
 `;
