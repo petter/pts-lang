@@ -22,7 +22,6 @@ class InstantiationTransformer {
                 inst_statement: this.transformInstStatement,
                 default: util_1.idTransform,
             });
-            console.log(childrenWithInstTransformed);
             return { ...(node ?? {}), children: childrenWithInstTransformed };
         };
         this.transformInstStatement = (_, children) => {
