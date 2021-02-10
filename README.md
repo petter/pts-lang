@@ -15,9 +15,7 @@ Add a start and/or build script to `package.json`:
 
 ```json
 {
-  ...
   "scripts": {
-    ...
     "start": "pts -i src/index.pts --run",
     "build": "pts -i src/index.pts -o build/index"
   }
