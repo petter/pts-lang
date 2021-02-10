@@ -1,0 +1,13 @@
+template T {
+    class A {
+        i = 0;
+
+        f() {
+            console.log(i);
+        }
+    }
+}
+
+package P {
+    inst T { A -> A (i -> j) };
+}
