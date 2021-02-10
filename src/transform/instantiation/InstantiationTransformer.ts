@@ -34,6 +34,7 @@ export default class InstantiationTransformer {
             inst_statement: this.transformInstStatement,
             default: idTransform,
         }) as ASTNode[];
+        console.log(childrenWithInstTransformed);
         return { ...(node ?? {}), children: childrenWithInstTransformed } as ASTNode;
     };
 

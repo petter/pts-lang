@@ -51,7 +51,7 @@ class ClassDeclarationMerger {
             return lodash_1.default.groupBy(classDeclarations, classDeclId);
         };
         this.verifyAddtoValid = (groups) => {
-            Object.keys(groups).forEach(key => this.verifyAddtoValidGroup(key, groups[key]));
+            Object.keys(groups).forEach((key) => this.verifyAddtoValidGroup(key, groups[key]));
         };
         this.verifyAddtoValidGroup = (className, group) => {
             if (group.every(util_1.typeIs('addto_statement')))

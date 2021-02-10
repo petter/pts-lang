@@ -9,7 +9,7 @@ function replace(elements, replaceWith, check) {
 exports.replace = replace;
 const typeIs = (type) => (objectWithType) => {
     if (Array.isArray(type))
-        return type.some(el => objectWithType.type === el);
+        return type.some((el) => objectWithType.type === el);
     return objectWithType.type === type;
 };
 exports.typeIs = typeIs;

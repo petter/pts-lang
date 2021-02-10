@@ -6,7 +6,10 @@ export function replace<T>(elements: T[], replaceWith: T, check: (el: T) => bool
     return elements.map((el) => (check(el) ? replaceWith : el));
 }
 
-export const typeIs = (type: string) => (objectWithType: { type: string }) => objectWithType.type === type;
+export const typeIs = (type: string | string[]) => (objectWithType: { type: string }) => {
+    if (Array.isArray(type)) return type.some((el) => objectWithType.type === el);
+    return objectWithType.type === type;
+};
 export const identifierIs = (identifier: string) => (objectWithIdentifier: { identifier: string }) =>
     objectWithIdentifier.identifier === identifier;
 
