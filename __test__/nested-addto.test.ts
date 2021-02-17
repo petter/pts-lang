@@ -16,7 +16,7 @@ template T2 {
     }
 }
 
-package P {
+pack P {
     inst T2;
     addto A {
         k = 0; 

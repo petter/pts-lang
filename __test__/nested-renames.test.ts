@@ -13,7 +13,7 @@ template T2 {
     inst T1 { A -> B (i -> j) };
 }
 
-package P {
+pack P {
     inst T2 { B -> C (j -> k) };
 }
 `;

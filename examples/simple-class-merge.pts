@@ -10,7 +10,7 @@ template T2 {
     }
 }
 
-package P {
+pack P {
     inst T1;
     inst T2;
 }

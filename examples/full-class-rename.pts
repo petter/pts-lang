@@ -34,6 +34,6 @@ template T {
     }
 }
 
-package P {
+pack P {
     inst T { A -> B (i -> x, k->n), B -> C };
 }

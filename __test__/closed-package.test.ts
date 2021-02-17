@@ -3,7 +3,7 @@ import transpile from '../src';
 
 test('Transpiles closed package to the body of the package', (t) => {
     const program = `
-package P {
+pack P {
     class A {
         i = 0;
     }

@@ -9,6 +9,6 @@ template T {
     }
 }
 
-package P {
+pack P {
     inst T { A -> B ( i -> j, x -> y ), X -> Y };
 }

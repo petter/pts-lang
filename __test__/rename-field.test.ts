@@ -9,7 +9,7 @@ template T {
     }
 }
 
-package P {
+pack P {
     inst T { A -> A (i -> j) } ;
 }
 `;
