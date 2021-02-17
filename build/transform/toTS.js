@@ -24,6 +24,12 @@ function toTS(program) {
             }
         },
     });
-    return prettier_1.default.format(unformatted, { semi: true, parser: 'typescript', tabWidth: 4 });
+    try {
+        return prettier_1.default.format(unformatted, { semi: true, parser: 'typescript', tabWidth: 4 });
+    }
+    catch (e) {
+        console.error('Error while pretty printing program, returning unformatted output');
+        return unformatted;
+    }
 }
 exports.default = toTS;

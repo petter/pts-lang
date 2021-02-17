@@ -20,5 +20,10 @@ export default function toTS(program: ASTNode): string {
             }
         },
     }) as string;
-    return prettier.format(unformatted, { semi: true, parser: 'typescript', tabWidth: 4 });
+    try {
+        return prettier.format(unformatted, { semi: true, parser: 'typescript', tabWidth: 4 });
+    } catch (e) {
+        console.error('Error while pretty printing program, returning unformatted output');
+        return unformatted;
+    }
 }
