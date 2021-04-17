@@ -27,3 +27,12 @@ export function filterMap<T>(elements: T[], func: (el: T) => T | null) {
 export function joinArrays<T>(a: T[], b: T[]): T[] {
     return [...a, ...b];
 }
+
+export function traverse<T extends { children: T[] }>(
+    tree: T,
+    { prefix, postfix }: { prefix?: (t: T) => T; postfix?: (t: T) => T },
+) {
+    const prefixAppliedTree = prefix ? prefix(tree) : tree;
+    prefixAppliedTree.children = prefixAppliedTree.children.map((child) => traverse(child, { prefix, postfix }));
+    return postfix ? postfix(tree) : tree;
+}

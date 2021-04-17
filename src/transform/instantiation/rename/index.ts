@@ -8,7 +8,7 @@ type ClassRenaming = Renaming & { fields: Renaming[] };
 export default function rename(renamings: ClassRenaming[], body: ASTNode[]): ASTNode[] {
     const root = {
         type: 'temp_root',
-        children: body.flat(), // TODO: Find out why this sometimes is nested, and fix it
+        children: body.flat(),
         text: '',
     };
     const scopedAST = ASTScoper.transform(root);

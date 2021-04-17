@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.joinArrays = exports.filterMap = exports.filterNull = exports.isNotNull = exports.identifierIs = exports.typeIs = exports.replace = exports.idTransform = void 0;
+exports.traverse = exports.joinArrays = exports.filterMap = exports.filterNull = exports.isNotNull = exports.identifierIs = exports.typeIs = exports.replace = exports.idTransform = void 0;
 const idTransform = (node, children) => ({ ...node, children: children.flat() });
 exports.idTransform = idTransform;
 function replace(elements, replaceWith, check) {
@@ -32,3 +32,9 @@ function joinArrays(a, b) {
     return [...a, ...b];
 }
 exports.joinArrays = joinArrays;
+function traverse(tree, { prefix, postfix }) {
+    const prefixAppliedTree = prefix ? prefix(tree) : tree;
+    prefixAppliedTree.children = prefixAppliedTree.children.map((child) => traverse(child, { prefix, postfix }));
+    return postfix ? postfix(tree) : tree;
+}
+exports.traverse = traverse;

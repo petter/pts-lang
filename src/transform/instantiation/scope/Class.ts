@@ -1,9 +1,13 @@
-import Variable from './Variable';
 import Scope from './Scope';
 import ASTTransformable from './ASTTransformable';
 import Attribute from './Attribute';
-import { typeIs } from '../../../../build/util';
 import { ScopedAST } from './ASTScoper';
+import Template from './Template';
+import { typeIs } from '../../../util';
+import { ASTNode } from '../../../AST';
+import { Renaming } from './Inst';
+
+type StagedRenaming = {[key: string]: [Attribute, string]};
 
 // export default class Class extends Variable {
 //     instancesOfMe: Variable[] = [];
@@ -41,58 +45,104 @@ import { ScopedAST } from './ASTScoper';
 //     }
 // }
 
-export default class Class implements ASTTransformable {
+export default class Class {
     className: string;
     superclass?: Class;
     implementedInterfaces?: string[];
     scope: Scope;
     bodyScope: Scope;
     attributes: Attribute[];
+    template: Template;
+    superclassName?: string;
+    initialized = false;
 
     private constructor({
         className,
         scope,
         bodyScope,
         attributes,
-        superclass,
         implementedInterfaces,
+        template,
+        superclassName
     }: {
         className: string;
         scope: Scope;
         bodyScope: Scope;
         attributes: Attribute[];
-        superclass?: Class;
         implementedInterfaces?: string[];
+        template: Template;
+        superclassName?: string;
     }) {
         this.className = className;
         this.scope = scope;
         this.bodyScope = bodyScope;
         this.attributes = attributes;
-        this.superclass = superclass;
         this.implementedInterfaces = implementedInterfaces;
+        this.template = template;
+        this.superclassName = superclassName;
+
+        attributes.forEach(attr => attr.memberOf = this);
     }
 
-    public static fromClassDeclaration = (classDeclaration: ScopedAST): Class => {
+    public static fromClassDeclaration = (classDeclaration: ScopedAST, template: Template): Class => {
         const { name, heritage, body } = parseClassDeclaration(classDeclaration);
 
         const attributes: Attribute[] = body.children.map(Attribute.fromDeclaration);
-
-        let superclass;
-        if (heritage && heritage.superclass) {
-            superclass = classDeclaration.scope.lookupClass(heritage.superclass);
-        }
 
         const cls = new Class({
             className: name,
             scope: classDeclaration.scope,
             bodyScope: body.scope,
             attributes: attributes,
-            superclass: superclass,
             implementedInterfaces: heritage?.implementedInterfaces,
+            template: template,
+            superclassName: heritage?.superclass,
         });
 
         return cls;
     };
+
+    public registerSuperclass() {
+
+    }
+
+    public renameAttributes = (attributeRenamings: Renaming[]): Class => {
+        const cls = this.clone()
+
+        const stagedAttributeRenames = attributeRenamings.reduce<StagedRenaming>((obj, attrRename) => {
+            if(attrRename.old in obj) {
+                throw new Error(`Can't rename same attribute twice. Attribute ${attrRename.old} in class ${cls.className} in template ${cls.template.name}.`)
+            }
+
+            const attr = cls.findAttribute(attrRename.old);
+            if(attr === undefined) {
+                throw new Error(`Can't rename attribute ${attrRename.old} in class ${cls.className} in template ${cls.template.name} because attribute does not exist.`);
+            }
+            return {...obj, [attrRename.old]: [attr, attrRename.new]};
+        }, {})
+
+        Object.keys(stagedAttributeRenames).forEach((oldAttrName) => {
+            const [attr, newName] = stagedAttributeRenames[oldAttrName]
+            const attrIndex = cls.attributes.findIndex(attr => attr.name === oldAttrName);
+            if(attrIndex === -1) {
+                throw new Error(`Impossible state! Attribute that has already been renamed can't be found in class.`)
+            }
+
+            cls.attributes[attrIndex] = attr.rename(newName)
+        });
+
+        return cls;
+    }
+
+    public clone = () : Class => ({...this})
+
+    public findAttribute = (attributeName: string) : Attribute | undefined => this.attributes.find(attr => attr.name === attributeName);
+
+    
+
+    toAST : () => ASTNode = () {
+        throw new Error('Method not implemented.');
+    }
 }
 
 function parseClassDeclaration(

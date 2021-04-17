@@ -29,10 +29,11 @@ export default class ASTScoper {
         this.program = program;
     }
 
-    public static transform(program: ASTNode): ScopedRefNode {
+    public static transform(program: ASTNode): ScopedAST {
         const astScoper = new ASTScoper(program);
         const scopedAst = astScoper.scopeProgram();
-        return ReferenceTransformer.transform(scopedAst);
+        // return ReferenceTransformer.transform(scopedAst);
+        return scopedAst;
     }
 
     private scopeProgram = (): ScopedAST => {

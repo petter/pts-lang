@@ -1,10 +1,18 @@
 import Variable from './Variable';
 import Class from './Class';
 
+type VariableSymbolTable = {
+    [origName: string]: Variable;
+}
+
+type ClassSymbolTable = {
+    [origName: string]: Class;
+}
+
 export default class Scope {
     parentScope: undefined | Scope;
-    variables: Variable[] = [];
-    classes: Class[] = [];
+    variables: VariableSymbolTable = {};
+    classes: ClassSymbolTable = {};
 
     private constructor(parentScope?: Scope) {
         this.parentScope = parentScope;
@@ -19,17 +27,17 @@ export default class Scope {
     }
 
     lookup(name: string): undefined | Variable {
-        return this.variables.find((v) => v.origName === name) || this.parentScope?.lookup(name);
+        return this.variables[name] || this.parentScope?.lookup(name);
     }
 
     lookupClass(name: string): undefined | Class {
-        return this.classes.find((c) => c.origName === name) || this.parentScope?.lookupClass(name);
+        return this.classes[name] || this.parentScope?.lookupClass(name);
     }
 
     defineClass(name: string, scope: Scope): Variable {
         const classDef = new Class(name, scope);
-        this.classes.push(classDef);
-        this.variables.push(classDef);
+        this.classes[name] = classDef;
+        this.variables[name] = classDef;
         scope.defineVariable('this', name);
         return classDef;
     }
@@ -38,7 +46,7 @@ export default class Scope {
         const instanceOf = instanceOfName ? this.lookupClass(instanceOfName) : undefined;
         const varDef = new Variable(name, instanceOf);
 
-        this.variables.push(varDef);
+        this.variables[name] = varDef;
         return varDef;
     }
 
@@ -67,17 +75,10 @@ export default class Scope {
         }
         fieldDecl.rename(newName);
 
-        // TODO: Rename references
-        // const field = instanceOfClass.instancesOfMe.find(el => el.origName === oldName);
-        // if(field === undefined) {
-        //     throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
-        // }
-        // field.rename(newName);
-
         return this;
     }
 
     toString(): string {
-        return this.variables.map((v) => v.name + ': ' + v.instanceOf?.name).join('\n');
+        return Object.values(this.variables).map((v) => v.name + ': ' + v.instanceOf?.name).join('\n');
     }
 }

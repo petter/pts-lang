@@ -7,8 +7,8 @@ const Variable_1 = __importDefault(require("./Variable"));
 const Class_1 = __importDefault(require("./Class"));
 class Scope {
     constructor(parentScope) {
-        this.variables = [];
-        this.classes = [];
+        this.variables = {};
+        this.classes = {};
         this.parentScope = parentScope;
     }
     static createRootScope() {
@@ -18,22 +18,22 @@ class Scope {
         return new Scope(parentScope);
     }
     lookup(name) {
-        return this.variables.find((v) => v.origName === name) || this.parentScope?.lookup(name);
+        return this.variables[name] || this.parentScope?.lookup(name);
     }
     lookupClass(name) {
-        return this.classes.find((c) => c.origName === name) || this.parentScope?.lookupClass(name);
+        return this.classes[name] || this.parentScope?.lookupClass(name);
     }
     defineClass(name, scope) {
         const classDef = new Class_1.default(name, scope);
-        this.classes.push(classDef);
-        this.variables.push(classDef);
+        this.classes[name] = classDef;
+        this.variables[name] = classDef;
         scope.defineVariable('this', name);
         return classDef;
     }
     defineVariable(name, instanceOfName) {
         const instanceOf = instanceOfName ? this.lookupClass(instanceOfName) : undefined;
         const varDef = new Variable_1.default(name, instanceOf);
-        this.variables.push(varDef);
+        this.variables[name] = varDef;
         return varDef;
     }
     rename(oldName, newName) {
@@ -57,16 +57,10 @@ class Scope {
             throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
         }
         fieldDecl.rename(newName);
-        // TODO: Rename references
-        // const field = instanceOfClass.instancesOfMe.find(el => el.origName === oldName);
-        // if(field === undefined) {
-        //     throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
-        // }
-        // field.rename(newName);
         return this;
     }
     toString() {
-        return this.variables.map((v) => v.name + ': ' + v.instanceOf?.name).join('\n');
+        return Object.values(this.variables).map((v) => v.name + ': ' + v.instanceOf?.name).join('\n');
     }
 }
 exports.default = Scope;
