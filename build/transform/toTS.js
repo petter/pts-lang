@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const prettier_1 = __importDefault(require("prettier"));
 const transform_1 = __importDefault(require("../transform"));
 function toTS(program) {
+    console.log(program);
     const unformatted = transform_1.default(program, {
         template_declaration: () => '',
         package_declaration: (_, children) => children[2],

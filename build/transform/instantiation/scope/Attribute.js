@@ -4,11 +4,27 @@ const util_1 = require("../../../util");
 class Attribute {
     constructor(name, node) {
         this.references = [];
-        this.rename = (newName) => {
-            this.name = newName;
+        this.initialized = 0;
+        this.transformRefs = () => {
+            // TODO: Traverse node and transform all references
+            // traverse(node, {prefix: (el: TreeNode) => el.})
+            this.initialized++;
         };
+        this.failIfNotInitialized = () => {
+            if (this.initialized === 2) {
+                throw new Error("Illegal use of class. Can't use Attribute-class before refs have been transformed and member class has been set. Call transformRefs and memberOf first.");
+            }
+        };
+        this.rename = (newName) => {
+            this.failIfNotInitialized();
+            const newAttr = this.clone();
+            newAttr.name = newName;
+            return newAttr;
+        };
+        this.clone = () => ({ ...this });
         // toAST: transform children toAST
         this.toAST = () => {
+            this.failIfNotInitialized();
             return util_1.traverse(this.node, {
                 prefix: (el) => ('toAST' in el ? el.toAST() : el),
             });
@@ -16,12 +32,20 @@ class Attribute {
         this.name = name;
         this.node = node;
     }
+    get memberOf() {
+        this.failIfNotInitialized();
+        if (this.memberValue === undefined) {
+            throw new Error('Class has somehow been initialized but memberOf value is still undefined. Something has gone wrong.');
+        }
+        return this.memberValue;
+    }
+    set memberOf(memberOf) {
+        this.memberValue = memberOf;
+        this.initialized++;
+    }
     static fromDeclaration(attributeDeclaration) {
         const { name, node } = parseDefinition(attributeDeclaration);
-        const attr = new Attribute(name, node);
-        // TODO: Traverse node and transform all references
-        // traverse(node, {prefix: (el: TreeNode) => el.})
-        return attr;
+        return new Attribute(name, node);
     }
 }
 exports.default = Attribute;

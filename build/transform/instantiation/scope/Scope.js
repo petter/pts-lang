@@ -1,10 +1,5 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const Variable_1 = __importDefault(require("./Variable"));
-const Class_1 = __importDefault(require("./Class"));
 class Scope {
     constructor(parentScope) {
         this.variables = {};
@@ -17,50 +12,53 @@ class Scope {
     static create(parentScope) {
         return new Scope(parentScope);
     }
-    lookup(name) {
-        return this.variables[name] || this.parentScope?.lookup(name);
-    }
-    lookupClass(name) {
-        return this.classes[name] || this.parentScope?.lookupClass(name);
-    }
-    defineClass(name, scope) {
-        const classDef = new Class_1.default(name, scope);
-        this.classes[name] = classDef;
-        this.variables[name] = classDef;
-        scope.defineVariable('this', name);
-        return classDef;
-    }
-    defineVariable(name, instanceOfName) {
-        const instanceOf = instanceOfName ? this.lookupClass(instanceOfName) : undefined;
-        const varDef = new Variable_1.default(name, instanceOf);
-        this.variables[name] = varDef;
-        return varDef;
-    }
-    rename(oldName, newName) {
-        const v = this.lookup(oldName);
-        if (v === undefined) {
-            throw new Error(`Variable ${oldName} does not exist and can not be renamed.`);
-        }
-        else {
-            v.rename(newName);
-        }
-        return this;
-    }
-    renameField(instanceOf, oldName, newName) {
-        // Rename declaration
-        const instanceOfClass = this.lookupClass(instanceOf);
-        if (instanceOfClass === undefined) {
-            throw new Error(`Class ${instanceOf} does not exist, and we can therefore not rename ${oldName} to ${newName}`);
-        }
-        const fieldDecl = instanceOfClass.lookup(oldName);
-        if (fieldDecl === undefined) {
-            throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
-        }
-        fieldDecl.rename(newName);
-        return this;
-    }
+    // lookup(name: string): undefined | Variable {
+    //     return this.variables[name] || this.parentScope?.lookup(name);
+    // }
+    // lookupClass(name: string): undefined | Class {
+    //     return this.classes[name] || this.parentScope?.lookupClass(name);
+    // }
+    // defineClass(name: string, scope: Scope): Variable {
+    //     const classDef = new Class(name, scope);
+    //     this.classes[name] = classDef;
+    //     this.variables[name] = classDef;
+    //     scope.defineVariable('this', name);
+    //     return classDef;
+    // }
+    // defineVariable(name: string, instanceOfName?: string): Variable {
+    //     const instanceOf = instanceOfName ? this.lookupClass(instanceOfName) : undefined;
+    //     const varDef = new Variable(name, instanceOf);
+    //     this.variables[name] = varDef;
+    //     return varDef;
+    // }
+    // rename(oldName: string, newName: string): Scope {
+    //     const v = this.lookup(oldName);
+    //     if (v === undefined) {
+    //         throw new Error(`Variable ${oldName} does not exist and can not be renamed.`);
+    //     } else {
+    //         v.rename(newName);
+    //     }
+    //     return this;
+    // }
+    // renameField(instanceOf: string, oldName: string, newName: string): Scope {
+    //     // Rename declaration
+    //     const instanceOfClass = this.lookupClass(instanceOf);
+    //     if (instanceOfClass === undefined) {
+    //         throw new Error(
+    //             `Class ${instanceOf} does not exist, and we can therefore not rename ${oldName} to ${newName}`,
+    //         );
+    //     }
+    //     const fieldDecl = instanceOfClass.lookup(oldName);
+    //     if (fieldDecl === undefined) {
+    //         throw new Error(`Field ${oldName} does not exist on class ${instanceOf}`);
+    //     }
+    //     fieldDecl.rename(newName);
+    //     return this;
+    // }
     toString() {
-        return Object.values(this.variables).map((v) => v.name + ': ' + v.instanceOf?.name).join('\n');
+        return Object.values(this.variables)
+            .map((v) => v.name + ': ' + v.instanceOf?.name)
+            .join('\n');
     }
 }
 exports.default = Scope;
