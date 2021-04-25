@@ -4,6 +4,17 @@ import ASTScoper, { ScopedAST } from './ASTScoper';
 import Class from './Class';
 import Inst, { InstRenaming } from './Inst';
 import Program from './Program';
+import {
+    INST_STATEMENT,
+    ADDTO_STATEMENT,
+    CLASS_DECLARATION,
+    TEMPLATE_DECL,
+    RIGHT_BRACKET_NODE,
+    LEFT_BRACKET_NODE,
+    PACKAGE_TEMPLATE_BODY,
+    TEMPLATE_NODE,
+    IDENTIFIER,
+} from '../../../token-kinds';
 
 type TemplateBodyElement = Class | Inst;
 type TemplateBody = TemplateBodyElement[];
@@ -14,53 +25,55 @@ export default class Template {
     body!: TemplateBody;
     program: Program;
     // scope: Scope;
-    get isClosed() {
+    get isClosed(): boolean {
         return this.body.every((el) => el instanceof Class);
     }
 
-    private constructor(name: string, program: Program) {
-        this.name = name;
+    protected constructor(templateDeclaration: ASTNode, program: Program) {
         this.program = program;
-    }
 
-    public static fromDeclaration(packageTemplateDeclaration: ASTNode, program: Program): Template {
-        if (
-            packageTemplateDeclaration.type !== 'package_declaration' &&
-            packageTemplateDeclaration.type !== 'template_declaration'
-        ) {
-            throw new Error('Cannot create a template from a ' + packageTemplateDeclaration.type);
-        }
-
-        const templateName = packageTemplateDeclaration.children.find(typeIs('identifier'))?.text;
+        const templateName = templateDeclaration.children.find(typeIs('identifier'))?.text;
         if (templateName === undefined) throw new Error('Impossible state! Template has no name.');
+        this.name = templateName;
 
-        const template = new Template(templateName, program);
-
-        const ptBodyNode = packageTemplateDeclaration.children.find(typeIs('package_template_body'));
+        const ptBodyNode = templateDeclaration.children.find(typeIs('package_template_body'));
         if (ptBodyNode === undefined) throw new Error('Impossible state! Template has no body.');
         const scopedPtBodyNode = ASTScoper.transform(ptBodyNode);
         const scopedPtBody = scopedPtBodyNode.children.slice(1, -1);
 
-        const body = scopedPtBody.map((el) => parsePTBodyElement(el, template));
-        template.body = body;
-
-        return template;
+        this.body = scopedPtBody.map((el) => parsePTBodyElement(el, this));
     }
 
-    public inst = (inst: Inst, instBodyIndex: number) => {
-        const template = this.program.findTemplate(inst.templateName);
-        if (template === undefined) {
-            throw new Error(`Can\'t instantiate template ${inst.templateName}, as it does not exist.`);
+    public static fromDeclaration(templateDeclaration: ASTNode, program: Program): Template {
+        if (templateDeclaration.type !== TEMPLATE_DECL) {
+            throw new Error('Cannot create a template from a ' + templateDeclaration.type);
         }
 
-        const renamedTemplate = template.performRenamings(inst.renamings);
+        return new Template(templateDeclaration, program);
+    }
 
-        const bodyPreInst = this.body.slice(0, instBodyIndex);
-        const bodyPostInst = this.body.slice(instBodyIndex + 1);
-        this.body = [...bodyPreInst, ...renamedTemplate.body, ...bodyPostInst];
+    public closeBody = () => {
+        this.body = this.body.flatMap((el) => {
+            if (el instanceof Inst) {
+                return this.inst(el);
+            }
+
+            return el;
+        });
     };
 
-    public performRenamings = (renamings: InstRenaming[]): Template => {
+    private inst = (inst: Inst): TemplateBody => {
+        const template = this.program.findTemplate(inst.templateName);
+        if (template === undefined) {
+            throw new Error(`Can't instantiate template ${inst.templateName}, as it does not exist.`);
+        }
+
+        const renamedTemplate = template.instMe(inst.renamings);
+
+        return renamedTemplate.body;
+    };
+
+    public instMe = (renamings: InstRenaming[]): Template => {
         const clone = this.clone();
 
         const stagedClassRenamings = renamings.reduce<StagedRenamings>((obj, classRenaming) => {
@@ -83,11 +96,11 @@ export default class Template {
 
         Object.keys(stagedClassRenamings).forEach((oldClassName) => {
             const [newClass, newName] = stagedClassRenamings[oldClassName];
-            const classIndex = clone.body.findIndex((el) => el instanceof Class && el.className === oldClassName);
+            const classIndex = clone.body.findIndex((el) => el instanceof Class && el.name === oldClassName);
             if (classIndex === -1)
                 throw new Error("Impossible state! A class that has already been renamed can't be found in template.");
 
-            newClass.className = newName;
+            newClass.name = newName;
             clone.body[classIndex] = newClass;
         });
 
@@ -99,7 +112,7 @@ export default class Template {
     };
 
     public findClass = (className: string): Class | undefined =>
-        this.body.find((el) => el instanceof Class && el.className === className) as Class | undefined;
+        this.body.find((el) => el instanceof Class && el.name === className) as Class | undefined;
 
     getClosedBody: () => Class[] = () => {
         if (!this.body.every((el) => el instanceof Class))
@@ -110,23 +123,33 @@ export default class Template {
         return this.body as Class[];
     };
 
-    toAST: () => ASTNode = () => {
+    toAST(): ASTNode {
         const closedBody = this.getClosedBody();
-
         return {
-            type: 'template_declaration',
+            type: TEMPLATE_DECL,
             text: '',
-            children: closedBody.map((el) => el.toAST()),
+            children: [
+                TEMPLATE_NODE,
+                { type: IDENTIFIER, text: this.name, children: [] },
+                {
+                    type: PACKAGE_TEMPLATE_BODY,
+                    text: '',
+                    children: [LEFT_BRACKET_NODE, ...closedBody.map((el) => el.toAST()), RIGHT_BRACKET_NODE],
+                },
+            ],
         };
-    };
+    }
 }
 
 function parsePTBodyElement(ptBodyEl: ScopedAST, template: Template): TemplateBodyElement {
     switch (ptBodyEl.type) {
-        case 'class_declaration':
+        case CLASS_DECLARATION:
             return Class.fromClassDeclaration(ptBodyEl, template);
-        case 'inst_statement':
+        case INST_STATEMENT:
             return Inst.transform(ptBodyEl, template);
+        case ADDTO_STATEMENT:
+            // TODO
+            throw new Error('Addto not implemented yet!');
         default:
             throw new Error(`${ptBodyEl.type} is not a supported body element`);
     }

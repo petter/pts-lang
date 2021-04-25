@@ -1,11 +1,9 @@
 import { ASTNode } from '../../../AST';
-import { ScopedAST } from './ASTScoper';
-import Scope from './Scope';
 import Template from './Template';
+import Package from './Package';
+import { PACKAGE_DECL, TEMPLATE_DECL, PROGRAM } from '../../../token-kinds';
 
 type ProgramBody = (ASTNode | Template)[];
-
-const PROGRAM_TYPE = 'program';
 
 export default class Program {
     body: ProgramBody;
@@ -13,28 +11,32 @@ export default class Program {
     private constructor(ast: ASTNode) {
         this.body = ast.children.map((child) => {
             switch (child.type) {
-                case 'package_declaration':
-                    return Template.fromDeclaration(child, this);
-                case 'template_declaration':
+                case PACKAGE_DECL:
+                    return Package.fromDeclaration(child, this);
+                case TEMPLATE_DECL:
                     return Template.fromDeclaration(child, this);
                 default:
                     return child;
             }
         });
+
+        this.body.forEach((el) => el instanceof Template && el.closeBody());
     }
 
-    public static transform(ast: ASTNode): Program {
-        if (ast.type !== 'program') {
+    public static transform(ast: ASTNode): ASTNode {
+        if (ast.type !== PROGRAM) {
             throw new Error(`Impossible state! Can't transform ${ast.type} to program.`);
         }
 
-        return new Program(ast);
+        const program = new Program(ast);
+
+        return program.toAST();
     }
 
     toAST = (): ASTNode => {
         const children = this.body.map((el) => ('toAST' in el ? el.toAST() : el));
         return {
-            type: PROGRAM_TYPE,
+            type: PROGRAM,
             text: '',
             children: children,
         };

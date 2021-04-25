@@ -10,7 +10,7 @@ export default class InstantiationTransformer {
     // private programAST: ASTNode;
 
     public static transform(programNode: ASTNode): ASTNode {
-        const program = Program.transform(programNode);
+        return Program.transform(programNode);
     }
 }
 

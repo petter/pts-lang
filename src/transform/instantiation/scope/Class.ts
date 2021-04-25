@@ -6,8 +6,22 @@ import Template from './Template';
 import { typeIs } from '../../../util';
 import { ASTNode } from '../../../AST';
 import { Renaming } from './Inst';
+import {
+    CLASS_HERITAGE,
+    EXTENDS_CLAUSE,
+    TYPE_IDENTIFIER,
+    IMPLEMENTS_CLAUSE,
+    CLASS_BODY,
+    IMPLEMENTS,
+    COMMA_NODE,
+    EXTENDS,
+    CLASS_DECLARATION,
+    CLASS,
+    LEFT_BRACKET_NODE,
+    RIGHT_BRACKET_NODE,
+} from '../../../token-kinds';
 
-type StagedRenaming = {[key: string]: [Attribute, string]};
+type StagedRenaming = { [key: string]: [Attribute, string] };
 
 // export default class Class extends Variable {
 //     instancesOfMe: Variable[] = [];
@@ -46,7 +60,7 @@ type StagedRenaming = {[key: string]: [Attribute, string]};
 // }
 
 export default class Class {
-    className: string;
+    name: string;
     superclass?: Class;
     implementedInterfaces?: string[];
     scope: Scope;
@@ -63,7 +77,7 @@ export default class Class {
         attributes,
         implementedInterfaces,
         template,
-        superclassName
+        superclassName,
     }: {
         className: string;
         scope: Scope;
@@ -73,7 +87,7 @@ export default class Class {
         template: Template;
         superclassName?: string;
     }) {
-        this.className = className;
+        this.name = className;
         this.scope = scope;
         this.bodyScope = bodyScope;
         this.attributes = attributes;
@@ -81,7 +95,7 @@ export default class Class {
         this.template = template;
         this.superclassName = superclassName;
 
-        attributes.forEach(attr => attr.memberOf = this);
+        attributes.forEach((attr) => (attr.memberOf = this));
     }
 
     public static fromClassDeclaration = (classDeclaration: ScopedAST, template: Template): Class => {
@@ -102,63 +116,128 @@ export default class Class {
         return cls;
     };
 
-    public registerSuperclass() {
-
-    }
+    // public registerSuperclass() {}
 
     public renameAttributes = (attributeRenamings: Renaming[]): Class => {
-        const cls = this.clone()
+        const cls = this.clone();
 
         const stagedAttributeRenames = attributeRenamings.reduce<StagedRenaming>((obj, attrRename) => {
-            if(attrRename.old in obj) {
-                throw new Error(`Can't rename same attribute twice. Attribute ${attrRename.old} in class ${cls.className} in template ${cls.template.name}.`)
+            if (attrRename.old in obj) {
+                throw new Error(
+                    `Can't rename same attribute twice. Attribute ${attrRename.old} in class ${cls.name} in template ${cls.template.name}.`,
+                );
             }
 
             const attr = cls.findAttribute(attrRename.old);
-            if(attr === undefined) {
-                throw new Error(`Can't rename attribute ${attrRename.old} in class ${cls.className} in template ${cls.template.name} because attribute does not exist.`);
+            if (attr === undefined) {
+                throw new Error(
+                    `Can't rename attribute ${attrRename.old} in class ${cls.name} in template ${cls.template.name} because attribute does not exist.`,
+                );
             }
-            return {...obj, [attrRename.old]: [attr, attrRename.new]};
-        }, {})
+            return { ...obj, [attrRename.old]: [attr, attrRename.new] };
+        }, {});
 
         Object.keys(stagedAttributeRenames).forEach((oldAttrName) => {
-            const [attr, newName] = stagedAttributeRenames[oldAttrName]
-            const attrIndex = cls.attributes.findIndex(attr => attr.name === oldAttrName);
-            if(attrIndex === -1) {
-                throw new Error(`Impossible state! Attribute that has already been renamed can't be found in class.`)
+            const [attr, newName] = stagedAttributeRenames[oldAttrName];
+            const attrIndex = cls.attributes.findIndex((attr) => attr.name === oldAttrName);
+            if (attrIndex === -1) {
+                throw new Error(`Impossible state! Attribute that has already been renamed can't be found in class.`);
             }
 
-            cls.attributes[attrIndex] = attr.rename(newName)
+            cls.attributes[attrIndex] = attr.rename(newName);
         });
 
         return cls;
-    }
+    };
 
-    public clone = () : Class => ({...this})
+    public clone = (): Class => ({ ...this });
 
-    public findAttribute = (attributeName: string) : Attribute | undefined => this.attributes.find(attr => attr.name === attributeName);
+    public findAttribute = (attributeName: string): Attribute | undefined =>
+        this.attributes.find((attr) => attr.name === attributeName);
 
-    
+    toAST: () => ASTNode = () => {
+        return {
+            type: CLASS_DECLARATION,
+            text: '',
+            children: [
+                {
+                    type: CLASS,
+                    text: CLASS,
+                    children: [],
+                },
+                { type: TYPE_IDENTIFIER, text: this.name, children: [] },
+                this.heritageToAST(),
+                this.attributesToAST(),
+            ].filter((el) => el !== undefined) as ASTNode[],
+        };
+    };
 
-    toAST : () => ASTNode = () {
-        throw new Error('Method not implemented.');
-    }
+    heritageToAST = (): ASTNode | undefined => {
+        if (this.implementedInterfaces === undefined && this.superclassName === undefined) return undefined;
+
+        const heritageBody: ASTNode[] = [];
+
+        if (this.superclassName !== undefined) {
+            heritageBody.push({
+                type: EXTENDS_CLAUSE,
+                text: '',
+                children: [
+                    { type: EXTENDS, text: EXTENDS, children: [] },
+                    { type: TYPE_IDENTIFIER, text: this.superclassName, children: [] },
+                ],
+            });
+        }
+
+        if (this.implementedInterfaces !== undefined) {
+            const implementedInterfacesAST = this.implementedInterfaces.flatMap((interfaceName) => [
+                {
+                    type: TYPE_IDENTIFIER,
+                    text: interfaceName,
+                    children: [],
+                },
+                COMMA_NODE,
+            ]);
+            implementedInterfacesAST.pop();
+
+            heritageBody.push({
+                type: IMPLEMENTS_CLAUSE,
+                text: '',
+                children: [{ type: IMPLEMENTS, text: IMPLEMENTS, children: [] }, ...implementedInterfacesAST],
+            });
+        }
+
+        return {
+            type: CLASS_HERITAGE,
+            text: '',
+            children: heritageBody,
+        };
+    };
+
+    attributesToAST = (): ASTNode => {
+        const attributesAST = this.attributes.map((attr) => attr.toAST());
+
+        return {
+            type: CLASS_BODY,
+            text: '',
+            children: [LEFT_BRACKET_NODE, ...attributesAST, RIGHT_BRACKET_NODE],
+        };
+    };
 }
 
 function parseClassDeclaration(
     classDeclaration: ScopedAST,
 ): { name: string; body: ClassBody; heritage?: { superclass?: string; implementedInterfaces?: string[] } } {
-    const name = classDeclaration.children.find(typeIs('type_identifier'))?.text;
+    const name = classDeclaration.children.find(typeIs(TYPE_IDENTIFIER))?.text;
     if (name === undefined) throw new Error('Impossible state! Class does not have a name');
 
     let heritage = undefined;
-    const heritageNode = classDeclaration.children.find(typeIs('class_heritage'));
+    const heritageNode = classDeclaration.children.find(typeIs(CLASS_HERITAGE));
     if (heritageNode !== undefined) {
-        const extendsClause = heritageNode.children.find(typeIs('extends_clause'));
-        const classExtends = extendsClause?.children.find(typeIs('type_identifier'))?.text;
+        const extendsClause = heritageNode.children.find(typeIs(EXTENDS_CLAUSE));
+        const classExtends = extendsClause?.children.find(typeIs(TYPE_IDENTIFIER))?.text;
 
-        const implementsClause = heritageNode.children.find(typeIs('implements_clause'));
-        const classImplements = implementsClause?.children.filter(typeIs('type_identifier'))?.map((el) => el.text);
+        const implementsClause = heritageNode.children.find(typeIs(IMPLEMENTS_CLAUSE));
+        const classImplements = implementsClause?.children.filter(typeIs(TYPE_IDENTIFIER))?.map((el) => el.text);
 
         heritage = { superclass: classExtends, implementedInterfaces: classImplements };
     }
@@ -182,7 +261,7 @@ class ClassBody implements ASTTransformable {
     }
 
     static fromClassDeclaration(classDecl: ScopedAST) {
-        const bodyNode = classDecl.children.find(typeIs('class_body'));
+        const bodyNode = classDecl.children.find(typeIs(CLASS_BODY));
         if (bodyNode === undefined) throw new Error("Impossible state! Class doesn't have body");
         return new ClassBody(bodyNode);
     }
