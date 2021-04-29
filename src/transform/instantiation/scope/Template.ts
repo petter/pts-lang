@@ -32,11 +32,11 @@ export default class Template {
     protected constructor(templateDeclaration: ASTNode, program: Program) {
         this.program = program;
 
-        const templateName = templateDeclaration.children.find(typeIs('identifier'))?.text;
+        const templateName = templateDeclaration.children.find(typeIs(IDENTIFIER))?.text;
         if (templateName === undefined) throw new Error('Impossible state! Template has no name.');
         this.name = templateName;
 
-        const ptBodyNode = templateDeclaration.children.find(typeIs('package_template_body'));
+        const ptBodyNode = templateDeclaration.children.find(typeIs(PACKAGE_TEMPLATE_BODY));
         if (ptBodyNode === undefined) throw new Error('Impossible state! Template has no body.');
         const scopedPtBodyNode = ASTScoper.transform(ptBodyNode);
         const scopedPtBody = scopedPtBodyNode.children.slice(1, -1);
@@ -58,6 +58,8 @@ export default class Template {
                 return this.inst(el);
             }
 
+            // TODO addto
+
             return el;
         });
     };
@@ -73,7 +75,7 @@ export default class Template {
         return renamedTemplate.body;
     };
 
-    public instMe = (renamings: InstRenaming[]): Template => {
+    protected instMe = (renamings: InstRenaming[]): Template => {
         const clone = this.clone();
 
         const stagedClassRenamings = renamings.reduce<StagedRenamings>((obj, classRenaming) => {
@@ -91,34 +93,50 @@ export default class Template {
             }
 
             const classWithAttrRenamed = cls.renameAttributes(classRenaming.attributeRenamings);
-            return { ...this, [classRenaming.old]: [classWithAttrRenamed, classRenaming.new] };
+            return { ...obj, [classRenaming.old]: [classWithAttrRenamed, classRenaming.new] };
         }, {});
 
         Object.keys(stagedClassRenamings).forEach((oldClassName) => {
             const [newClass, newName] = stagedClassRenamings[oldClassName];
-            const classIndex = clone.body.findIndex((el) => el instanceof Class && el.name === oldClassName);
-            if (classIndex === -1)
-                throw new Error("Impossible state! A class that has already been renamed can't be found in template.");
-
             newClass.name = newName;
-            clone.body[classIndex] = newClass;
+            clone.replaceClass(oldClassName, newClass);
         });
 
         return clone;
     };
 
     public clone = (): Template => {
-        return { ...this };
+        return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+    };
+
+    private replaceClass = (className: string, newClass: Class) => {
+        let replaceCount = 0;
+        this.body = this.body.map((el) => {
+            if (el instanceof Class && el.name === className) {
+                replaceCount++;
+                return newClass;
+            }
+
+            return el;
+        });
+
+        if (replaceCount > 1) {
+            throw new Error(`Tried replacing class ${className}, but there are more than one of these.`);
+        } else if (replaceCount === 0) {
+            throw new Error(`Tried replacing class ${className}, but this class does not exist`);
+        }
     };
 
     public findClass = (className: string): Class | undefined =>
         this.body.find((el) => el instanceof Class && el.name === className) as Class | undefined;
 
     getClosedBody: () => Class[] = () => {
-        if (!this.body.every((el) => el instanceof Class))
+        if (!this.body.every((el) => el instanceof Class)) {
+            console.error(this.body);
             throw new Error(
                 `Body of template ${this.name} is not closed. Method is not completely implemented, should close the body in the future, perhaps`,
             );
+        }
 
         return this.body as Class[];
     };

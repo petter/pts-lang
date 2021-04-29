@@ -10,9 +10,16 @@ export const TEMPLATE_NODE = { type: TEMPLATE, text: TEMPLATE, children: [] };
 export const PACKAGE_TEMPLATE_BODY = 'package_template_body';
 export const INST_STATEMENT = 'inst_statement';
 export const ADDTO_STATEMENT = 'addto_statement';
+export const CLASS_RENAMINGS = 'class_renamings';
+export const CLASS_RENAME = 'class_rename';
+export const FIELD_RENAMINGS = 'field_renamings';
+export const RENAME = 'rename';
 
 // TypeScript
 export const PROGRAM = 'program';
+
+export const PUBLIC_FIELD_DEFINITION = 'public_field_definition';
+export const METHOD_DEFINITION = 'method_definition';
 
 export const TYPE_IDENTIFIER = 'type_identifier';
 export const IDENTIFIER = 'identifier';
@@ -32,6 +39,7 @@ export const COMMA_NODE: ASTNode = {
     text: ',',
     children: [],
 };
+export const SEMI = ';';
 export const LEFT_BRACKET = '{';
 export const LEFT_BRACKET_NODE: ASTNode = {
     type: LEFT_BRACKET,

@@ -20,7 +20,7 @@ export default class Program {
             }
         });
 
-        this.body.forEach((el) => el instanceof Template && el.closeBody());
+        this.body.forEach((el) => 'closeBody' in el && el.closeBody());
     }
 
     public static transform(ast: ASTNode): ASTNode {

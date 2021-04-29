@@ -101,7 +101,9 @@ export default class Class {
     public static fromClassDeclaration = (classDeclaration: ScopedAST, template: Template): Class => {
         const { name, heritage, body } = parseClassDeclaration(classDeclaration);
 
-        const attributes: Attribute[] = body.children.map(Attribute.fromDeclaration);
+        const attributes: Attribute[] = body.children
+            .map(Attribute.fromDeclaration)
+            .filter((el) => el !== undefined) as Attribute[];
 
         const cls = new Class({
             className: name,
@@ -150,12 +152,13 @@ export default class Class {
         return cls;
     };
 
-    public clone = (): Class => ({ ...this });
+    public clone = (): Class => Object.assign(Object.create(Object.getPrototypeOf(this)), this);
 
     public findAttribute = (attributeName: string): Attribute | undefined =>
         this.attributes.find((attr) => attr.name === attributeName);
 
     toAST: () => ASTNode = () => {
+        console.log(this.name);
         return {
             type: CLASS_DECLARATION,
             text: '',

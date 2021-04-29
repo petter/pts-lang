@@ -12,14 +12,13 @@ export default class Package extends Template {
         return new Package(packageDeclaration, program);
     }
 
-    public instMe = () => {
+    protected instMe = () => {
         throw new Error("Can't instantiate a pacakge.");
     };
 
     public toAST = (): ASTNode => {
         const ast = super.toAST();
         ast.type = PACKAGE_DECL;
-        console.log(ast.children[0].children);
         return ast;
     };
 }

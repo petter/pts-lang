@@ -1,3 +1,4 @@
+import { METHOD_DEFINITION, PUBLIC_FIELD_DEFINITION, SEMI } from '../../../token-kinds';
 import { traverse, typeIs } from '../../../util';
 import { ScopedAST } from './ASTScoper';
 import ASTTransformable from './ASTTransformable';
@@ -33,9 +34,10 @@ export default class Attribute implements ASTTransformable {
         this.node = node;
     }
 
-    public static fromDeclaration(attributeDeclaration: ScopedAST): Attribute {
-        const { name, node } = parseDefinition(attributeDeclaration);
-        return new Attribute(name, node);
+    public static fromDeclaration(attributeDeclaration: ScopedAST): Attribute | undefined {
+        const maybeParsedDef = parseDefinition(attributeDeclaration);
+        if (maybeParsedDef !== undefined) return new Attribute(maybeParsedDef.name, maybeParsedDef.node);
+        return undefined;
     }
 
     public transformRefs = () => {
@@ -72,11 +74,13 @@ export default class Attribute implements ASTTransformable {
 
 type ParsedDefinition = { name: string; node: ScopedAST };
 
-function parseDefinition(definition: ScopedAST): ParsedDefinition {
-    if (definition.type === 'public_field_definition') {
+function parseDefinition(definition: ScopedAST): ParsedDefinition | undefined {
+    if (definition.type === PUBLIC_FIELD_DEFINITION) {
         return parsePublicFieldDefinition(definition);
-    } else if (definition.type === 'method_definition') {
+    } else if (definition.type === METHOD_DEFINITION) {
         return parseMethodDefinition(definition);
+    } else if (definition.type === SEMI) {
+        return undefined;
     } else {
         throw new Error('Unsupported attribute type: ' + definition.type);
     }

@@ -3,7 +3,6 @@ import { ASTNode } from '../AST';
 import transform from '../transform';
 
 export default function toTS(program: ASTNode): string {
-    console.log(program);
     const unformatted = transform<ASTNode, string>(program, {
         template_declaration: () => '',
         package_declaration: (_, children) => children[2],

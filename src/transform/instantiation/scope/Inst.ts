@@ -1,4 +1,6 @@
+import { IDENTIFIER } from '../../../../build/token-kinds';
 import { ASTNode } from '../../../AST';
+import { CLASS_RENAME, CLASS_RENAMINGS, FIELD_RENAMINGS, INST_STATEMENT, RENAME } from '../../../token-kinds';
 import { typeIs } from '../../../util';
 import Template from './Template';
 
@@ -17,17 +19,17 @@ export default class Inst {
     }
 
     public static transform(instStatement: ASTNode, memberOf: Template) {
-        if (instStatement.type !== 'inst_statement')
+        if (instStatement.type !== INST_STATEMENT)
             throw new Error(`Can\'t transform ${instStatement.type} to an Inst object.`);
 
-        const instTemplateName = instStatement.children.find(typeIs('identifier'))?.text;
+        const instTemplateName = instStatement.children.find(typeIs(IDENTIFIER))?.text;
         if (instTemplateName === undefined)
             throw new Error('Instantiation is instantiating something without an identifier.');
 
         const renamings =
             instStatement.children
-                .find(typeIs('class_renamings'))
-                ?.children.filter(typeIs('class_rename'))
+                .find(typeIs(CLASS_RENAMINGS))
+                ?.children.filter(typeIs(CLASS_RENAME))
                 .map(extractRenamings) || [];
 
         return new Inst(instTemplateName, renamings, memberOf);
@@ -37,10 +39,8 @@ export default class Inst {
 function extractRenamings(classRenameNode: ASTNode): InstRenaming {
     const classRenamingNode = classRenameNode.children[0];
     const attributeRenamings =
-        classRenameNode.children
-            .find(typeIs('field_renamings'))
-            ?.children.filter(typeIs('rename'))
-            .map(makeRenameObject) || [];
+        classRenameNode.children.find(typeIs(FIELD_RENAMINGS))?.children.filter(typeIs(RENAME)).map(makeRenameObject) ||
+        [];
 
     return {
         ...makeRenameObject(classRenamingNode),
