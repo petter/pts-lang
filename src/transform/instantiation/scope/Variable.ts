@@ -10,7 +10,7 @@ export default class Variable {
         this.origName = name;
         this.instanceOf = instanceOf;
 
-        if (instanceOf) instanceOf.addInstanceOfMe(this);
+        // if (instanceOf) instanceOf.addInstanceOfMe(this);
     }
 
     rename(newName: string): Variable {

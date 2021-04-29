@@ -26,6 +26,23 @@ export default class Scope {
         return new Scope(parentScope);
     }
 
+    lookup(name: string): undefined | Variable {
+        throw new Error('lookup is depracated/not implemented');
+    }
+
+    defineClass(name: string, scope: Scope): Variable {
+        throw new Error('defineClass is depracated/not implemented');
+    }
+    defineVariable(name: string, instanceOfName?: string): Variable {
+        throw new Error('defineVariable is depracated/not implemented');
+    }
+    rename(oldName: string, newName: string): Scope {
+        throw new Error('rename is depracated/not implemented');
+    }
+    renameField(instanceOf: string, oldName: string, newName: string): Scope {
+        throw new Error('renameField is depracated/not implemented');
+    }
+
     // lookup(name: string): undefined | Variable {
     //     return this.variables[name] || this.parentScope?.lookup(name);
     // }

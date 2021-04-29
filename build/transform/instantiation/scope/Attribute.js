@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const token_kinds_1 = require("../../../token-kinds");
 const util_1 = require("../../../util");
 class Attribute {
     constructor(name, node) {
@@ -44,17 +45,22 @@ class Attribute {
         this.initialized++;
     }
     static fromDeclaration(attributeDeclaration) {
-        const { name, node } = parseDefinition(attributeDeclaration);
-        return new Attribute(name, node);
+        const maybeParsedDef = parseDefinition(attributeDeclaration);
+        if (maybeParsedDef !== undefined)
+            return new Attribute(maybeParsedDef.name, maybeParsedDef.node);
+        return undefined;
     }
 }
 exports.default = Attribute;
 function parseDefinition(definition) {
-    if (definition.type === 'public_field_definition') {
+    if (definition.type === token_kinds_1.PUBLIC_FIELD_DEFINITION) {
         return parsePublicFieldDefinition(definition);
     }
-    else if (definition.type === 'method_definition') {
+    else if (definition.type === token_kinds_1.METHOD_DEFINITION) {
         return parseMethodDefinition(definition);
+    }
+    else if (definition.type === token_kinds_1.SEMI) {
+        return undefined;
     }
     else {
         throw new Error('Unsupported attribute type: ' + definition.type);

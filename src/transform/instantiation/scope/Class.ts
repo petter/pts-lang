@@ -272,6 +272,10 @@ class ClassBody implements ASTTransformable {
     toAST: () => ScopedAST = () => {
         return this.bodyNode;
     };
+
+    lookup(name: string) {
+        throw new Error('not implemented');
+    }
 }
 //     private getClassName = () => {
 //         const className = this.classDecl.children.find(typeIs('type_identifier'));

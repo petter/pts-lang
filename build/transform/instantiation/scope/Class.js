@@ -62,9 +62,10 @@ class Class {
             });
             return cls;
         };
-        this.clone = () => ({ ...this });
+        this.clone = () => Object.assign(Object.create(Object.getPrototypeOf(this)), this);
         this.findAttribute = (attributeName) => this.attributes.find((attr) => attr.name === attributeName);
         this.toAST = () => {
+            console.log(this.name);
             return {
                 type: token_kinds_1.CLASS_DECLARATION,
                 text: '',
@@ -137,7 +138,9 @@ class Class {
 exports.default = Class;
 Class.fromClassDeclaration = (classDeclaration, template) => {
     const { name, heritage, body } = parseClassDeclaration(classDeclaration);
-    const attributes = body.children.map(Attribute_1.default.fromDeclaration);
+    const attributes = body.children
+        .map(Attribute_1.default.fromDeclaration)
+        .filter((el) => el !== undefined);
     const cls = new Class({
         className: name,
         scope: classDeclaration.scope,

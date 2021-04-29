@@ -1,6 +1,12 @@
-import { IDENTIFIER } from '../../../../build/token-kinds';
 import { ASTNode } from '../../../AST';
-import { CLASS_RENAME, CLASS_RENAMINGS, FIELD_RENAMINGS, INST_STATEMENT, RENAME } from '../../../token-kinds';
+import {
+    CLASS_RENAME,
+    CLASS_RENAMINGS,
+    FIELD_RENAMINGS,
+    INST_STATEMENT,
+    RENAME,
+    IDENTIFIER,
+} from '../../../token-kinds';
 import { typeIs } from '../../../util';
 import Template from './Template';
 

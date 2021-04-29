@@ -14,7 +14,6 @@ class Package extends Template_1.default {
         this.toAST = () => {
             const ast = super.toAST();
             ast.type = token_kinds_1.PACKAGE_DECL;
-            console.log(ast.children[0].children);
             return ast;
         };
     }

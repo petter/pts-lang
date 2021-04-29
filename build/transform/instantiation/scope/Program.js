@@ -27,7 +27,7 @@ class Program {
                     return child;
             }
         });
-        this.body.forEach((el) => el instanceof Template_1.default && el.closeBody());
+        this.body.forEach((el) => 'closeBody' in el && el.closeBody());
     }
     static transform(ast) {
         if (ast.type !== token_kinds_1.PROGRAM) {

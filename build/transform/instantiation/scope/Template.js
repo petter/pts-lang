@@ -15,6 +15,7 @@ class Template {
                 if (el instanceof Inst_1.default) {
                     return this.inst(el);
                 }
+                // TODO addto
                 return el;
             });
         };
@@ -37,33 +38,48 @@ class Template {
                     throw new Error(`Can't rename class ${classRenaming.old} in template ${this.name} as this class does not exist`);
                 }
                 const classWithAttrRenamed = cls.renameAttributes(classRenaming.attributeRenamings);
-                return { ...this, [classRenaming.old]: [classWithAttrRenamed, classRenaming.new] };
+                return { ...obj, [classRenaming.old]: [classWithAttrRenamed, classRenaming.new] };
             }, {});
             Object.keys(stagedClassRenamings).forEach((oldClassName) => {
                 const [newClass, newName] = stagedClassRenamings[oldClassName];
-                const classIndex = clone.body.findIndex((el) => el instanceof Class_1.default && el.name === oldClassName);
-                if (classIndex === -1)
-                    throw new Error("Impossible state! A class that has already been renamed can't be found in template.");
                 newClass.name = newName;
-                clone.body[classIndex] = newClass;
+                clone.replaceClass(oldClassName, newClass);
             });
             return clone;
         };
         this.clone = () => {
-            return { ...this };
+            return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+        };
+        this.replaceClass = (className, newClass) => {
+            let replaceCount = 0;
+            this.body = this.body.map((el) => {
+                if (el instanceof Class_1.default && el.name === className) {
+                    replaceCount++;
+                    return newClass;
+                }
+                return el;
+            });
+            if (replaceCount > 1) {
+                throw new Error(`Tried replacing class ${className}, but there are more than one of these.`);
+            }
+            else if (replaceCount === 0) {
+                throw new Error(`Tried replacing class ${className}, but this class does not exist`);
+            }
         };
         this.findClass = (className) => this.body.find((el) => el instanceof Class_1.default && el.name === className);
         this.getClosedBody = () => {
-            if (!this.body.every((el) => el instanceof Class_1.default))
+            if (!this.body.every((el) => el instanceof Class_1.default)) {
+                console.error(this.body);
                 throw new Error(`Body of template ${this.name} is not closed. Method is not completely implemented, should close the body in the future, perhaps`);
+            }
             return this.body;
         };
         this.program = program;
-        const templateName = templateDeclaration.children.find(util_1.typeIs('identifier'))?.text;
+        const templateName = templateDeclaration.children.find(util_1.typeIs(token_kinds_1.IDENTIFIER))?.text;
         if (templateName === undefined)
             throw new Error('Impossible state! Template has no name.');
         this.name = templateName;
-        const ptBodyNode = templateDeclaration.children.find(util_1.typeIs('package_template_body'));
+        const ptBodyNode = templateDeclaration.children.find(util_1.typeIs(token_kinds_1.PACKAGE_TEMPLATE_BODY));
         if (ptBodyNode === undefined)
             throw new Error('Impossible state! Template has no body.');
         const scopedPtBodyNode = ASTScoper_1.default.transform(ptBodyNode);
