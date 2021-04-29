@@ -29,6 +29,9 @@ export default class Scope {
     lookup(name: string): undefined | Variable {
         throw new Error('lookup is depracated/not implemented');
     }
+    lookupClass(name: string): undefined | Class {
+        throw new Error('lookupClass is depracated/not implemented');
+    }
 
     defineClass(name: string, scope: Scope): Variable {
         throw new Error('defineClass is depracated/not implemented');

@@ -160,7 +160,11 @@ export default class ReferenceTransformer {
     private transformTypeIdentifier = (typeIdentifierNode: ScopedRefNode): ScopedRefNode => {
         const classRef = typeIdentifierNode.scope.lookupClass(typeIdentifierNode.text);
         if (classRef === undefined) return typeIdentifierNode;
-        return new RefNode({ origType: typeIdentifierNode.type, scope: typeIdentifierNode.scope, ref: classRef });
+        return new RefNode({
+            origType: typeIdentifierNode.type,
+            scope: typeIdentifierNode.scope,
+            ref: (classRef as unknown) as Variable /* TODO */,
+        });
     };
 
     private transformGenericTypeIdentifier = (genericTypeNode: Readonly<ScopedRefNode>): ScopedRefNode => {
@@ -314,7 +318,7 @@ export default class ReferenceTransformer {
 
         const newId = new RefNode({
             origType: id.type,
-            ref: varDecl,
+            ref: (varDecl as unknown) as Variable,
             scope: id.scope,
         });
 

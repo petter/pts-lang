@@ -134,6 +134,9 @@ class Class {
         this.superclassName = superclassName;
         attributes.forEach((attr) => (attr.memberOf = this));
     }
+    lookup(name) {
+        throw new Error('lookup depracated/not implemented');
+    }
 }
 exports.default = Class;
 Class.fromClassDeclaration = (classDeclaration, template) => {

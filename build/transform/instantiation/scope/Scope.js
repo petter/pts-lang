@@ -15,6 +15,9 @@ class Scope {
     lookup(name) {
         throw new Error('lookup is depracated/not implemented');
     }
+    lookupClass(name) {
+        throw new Error('lookupClass is depracated/not implemented');
+    }
     defineClass(name, scope) {
         throw new Error('defineClass is depracated/not implemented');
     }

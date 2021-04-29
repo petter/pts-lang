@@ -20,6 +20,7 @@ import {
     LEFT_BRACKET_NODE,
     RIGHT_BRACKET_NODE,
 } from '../../../token-kinds';
+import Variable from './Variable';
 
 type StagedRenaming = { [key: string]: [Attribute, string] };
 
@@ -225,7 +226,7 @@ export default class Class {
             children: [LEFT_BRACKET_NODE, ...attributesAST, RIGHT_BRACKET_NODE],
         };
     };
-    lookup(name: string) {
+    lookup(name: string): Variable {
         throw new Error('lookup depracated/not implemented');
     }
 }

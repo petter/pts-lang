@@ -128,7 +128,11 @@ class ReferenceTransformer {
             const classRef = typeIdentifierNode.scope.lookupClass(typeIdentifierNode.text);
             if (classRef === undefined)
                 return typeIdentifierNode;
-            return new RefNode({ origType: typeIdentifierNode.type, scope: typeIdentifierNode.scope, ref: classRef });
+            return new RefNode({
+                origType: typeIdentifierNode.type,
+                scope: typeIdentifierNode.scope,
+                ref: classRef /* TODO */,
+            });
         };
         this.transformGenericTypeIdentifier = (genericTypeNode) => {
             const newGenericTypeNode = { ...genericTypeNode, children: [...genericTypeNode.children] };
