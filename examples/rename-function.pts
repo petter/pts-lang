@@ -1,0 +1,11 @@
+template T {
+    class A {
+        f() {
+            return 1;
+        } 
+    }
+}
+
+pack P {
+    inst T { A -> A (f -> g) };
+}
