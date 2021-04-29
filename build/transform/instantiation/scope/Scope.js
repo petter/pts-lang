@@ -12,6 +12,21 @@ class Scope {
     static create(parentScope) {
         return new Scope(parentScope);
     }
+    lookup(name) {
+        throw new Error('lookup is depracated/not implemented');
+    }
+    defineClass(name, scope) {
+        throw new Error('defineClass is depracated/not implemented');
+    }
+    defineVariable(name, instanceOfName) {
+        throw new Error('defineVariable is depracated/not implemented');
+    }
+    rename(oldName, newName) {
+        throw new Error('rename is depracated/not implemented');
+    }
+    renameField(instanceOf, oldName, newName) {
+        throw new Error('renameField is depracated/not implemented');
+    }
     // lookup(name: string): undefined | Variable {
     //     return this.variables[name] || this.parentScope?.lookup(name);
     // }

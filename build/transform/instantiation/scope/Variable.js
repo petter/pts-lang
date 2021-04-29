@@ -5,8 +5,7 @@ class Variable {
         this.name = name;
         this.origName = name;
         this.instanceOf = instanceOf;
-        if (instanceOf)
-            instanceOf.addInstanceOfMe(this);
+        // if (instanceOf) instanceOf.addInstanceOfMe(this);
     }
     rename(newName) {
         this.name = newName;

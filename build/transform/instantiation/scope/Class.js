@@ -187,6 +187,9 @@ class ClassBody {
             throw new Error("Impossible state! Class doesn't have body");
         return new ClassBody(bodyNode);
     }
+    lookup(name) {
+        throw new Error('not implemented');
+    }
 }
 //     private getClassName = () => {
 //         const className = this.classDecl.children.find(typeIs('type_identifier'));

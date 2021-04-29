@@ -225,6 +225,9 @@ export default class Class {
             children: [LEFT_BRACKET_NODE, ...attributesAST, RIGHT_BRACKET_NODE],
         };
     };
+    lookup(name: string) {
+        throw new Error('lookup depracated/not implemented');
+    }
 }
 
 function parseClassDeclaration(
