@@ -8,7 +8,7 @@ Initialize the project
 mkdir <name of project>
 cd <name of project>
 npm init -Y
-npm install https://github.com/petter/pts
+npm install pts-lang
 ```
 
 Add a start and/or build script to `package.json`:
@@ -16,8 +16,8 @@ Add a start and/or build script to `package.json`:
 ```json
 {
   "scripts": {
-    "start": "pts -i src/index.pts --run",
-    "build": "pts -i src/index.pts -o build/index"
+    "start": "pts-lang -i src/index.pts --run",
+    "build": "pts-lang -i src/index.pts -o build/index"
   }
 }
 ```
@@ -26,7 +26,7 @@ The start script only runs the program, and doesn't emit any files, while the bu
 If you'd rather have TypeScript as output you can use `-t`:
 
 ```bash
-pts -i src/index.pts -o build/index -t ts
+pts-lang -i src/index.pts -o build/index -t ts
 ```
 
 ## TODOs
@@ -51,4 +51,5 @@ pts -i src/index.pts -o build/index -t ts
   - [x] Check if the class to be added to exists
   - [x] Merge bodies of the class and addto-statement
   - [ ] Add implementing interfaces and extended classes to the class
+  - [ ] Override attributes
 - [ ] Validating templates
