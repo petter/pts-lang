@@ -124,8 +124,10 @@ export default class ReferenceTransformer {
             }
 
             // TODO: Do something like this for interfaces as well
-            if (subClassRef !== undefined && firstRefNode instanceof RefNode) {
-                (subClassRef.ref as Class).addSuperClass(firstRefNode.ref as Class);
+            if (subClassRef !== undefined) {
+                if (firstRefNode instanceof RefNode) {
+                    (subClassRef.ref as Class).addSuperClass(firstRefNode.ref as Class);
+                }
             } else {
                 throw new Error("Can't find subclass" + node.children);
             }

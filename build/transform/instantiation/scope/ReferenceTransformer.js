@@ -87,8 +87,10 @@ class ReferenceTransformer {
                     firstRefNode = firstSuperClass.children[0];
                 }
                 // TODO: Do something like this for interfaces as well
-                if (subClassRef !== undefined && firstRefNode instanceof RefNode) {
-                    subClassRef.ref.addSuperClass(firstRefNode.ref);
+                if (subClassRef !== undefined) {
+                    if (firstRefNode instanceof RefNode) {
+                        subClassRef.ref.addSuperClass(firstRefNode.ref);
+                    }
                 }
                 else {
                     throw new Error("Can't find subclass" + node.children);
