@@ -17,7 +17,7 @@ pack P {
 `;
 
     const expected = `class A {
-    f() {
+    g() {
         return 1;
     }
 }

@@ -115,16 +115,16 @@ export default class ReferenceTransformer {
             heritageNode.children[EXTENDS_CLAUSE] = { ...extendsClause, children: newExtendsClauseChildren };
 
             const firstSuperClass = newExtendsClauseChildren[1];
-            let firstRefNode: RefNode;
+            let firstRefNode: ScopedAST;
             if (firstSuperClass instanceof RefNode) {
                 firstRefNode = firstSuperClass;
             } else {
-                // generic_type
-                firstRefNode = firstSuperClass.children[0] as RefNode;
+                // TODO maybe generic_type or some class that can't be renamed
+                firstRefNode = firstSuperClass.children[0];
             }
 
             // TODO: Do something like this for interfaces as well
-            if (subClassRef !== undefined) {
+            if (subClassRef !== undefined && firstRefNode instanceof RefNode) {
                 (subClassRef.ref as Class).addSuperClass(firstRefNode.ref as Class);
             } else {
                 throw new Error("Can't find subclass" + node.children);

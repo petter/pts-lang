@@ -83,11 +83,11 @@ class ReferenceTransformer {
                     firstRefNode = firstSuperClass;
                 }
                 else {
-                    // generic_type
+                    // TODO maybe generic_type or some class that can't be renamed
                     firstRefNode = firstSuperClass.children[0];
                 }
                 // TODO: Do something like this for interfaces as well
-                if (subClassRef !== undefined) {
+                if (subClassRef !== undefined && firstRefNode instanceof RefNode) {
                     subClassRef.ref.addSuperClass(firstRefNode.ref);
                 }
                 else {
