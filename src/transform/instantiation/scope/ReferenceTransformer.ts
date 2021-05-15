@@ -293,7 +293,8 @@ export default class ReferenceTransformer {
             // console.log
             return this.memberOfIdentifier(memberExprNode);
         } else {
-            throw new Error(
+            //throw new Error(
+            console.warn(
                 'Unhandled member_expression. children[MEMBER_OF].type = ' + memberExprNode.children[MEMBER_OF].type,
             );
         }
