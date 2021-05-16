@@ -1,0 +1,13 @@
+template T {
+    class A {
+        i = 0;
+    }
+
+    class B {
+        a : {j: number} = new A();
+    }
+}
+
+pack P {
+    inst T { A -> A (i -> j) };
+}

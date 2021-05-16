@@ -156,7 +156,9 @@ export default class ReferenceTransformer {
         if (node.type === 'generic_type') return this.transformGenericTypeIdentifier(node);
         if (node.type === 'predefined_type') return node;
         if (node.type === 'type_predicate') return this.transformTypePredicate(node);
-        throw new Error('Unsupported type: ' + node.type);
+        if (node.type === 'object_type') return node;
+        return node;
+        //throw new Error('Unsupported type: ' + node.type);
     };
 
     private transformTypeIdentifier = (typeIdentifierNode: ScopedRefNode): ScopedRefNode => {
@@ -293,8 +295,7 @@ export default class ReferenceTransformer {
             // console.log
             return this.memberOfIdentifier(memberExprNode);
         } else {
-            //throw new Error(
-            console.warn(
+            throw new Error(
                 'Unhandled member_expression. children[MEMBER_OF].type = ' + memberExprNode.children[MEMBER_OF].type,
             );
         }

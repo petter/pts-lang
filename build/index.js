@@ -36,6 +36,7 @@ const AST_1 = require("./AST");
 const transform_1 = __importDefault(require("./transform"));
 const InstantiationTransformer_1 = __importDefault(require("./transform/instantiation/InstantiationTransformer"));
 const toTS_1 = __importDefault(require("./transform/toTS"));
+const type_check_1 = __importDefault(require("./type-check/type-check"));
 const parser = new tree_sitter_1.default();
 parser.setLanguage(PTS);
 function transpile(sourceCode, _options) {
@@ -51,6 +52,7 @@ function transpile(sourceCode, _options) {
     if (options.verbose)
         console.log(toSExpressions(ast));
     const inst = InstantiationTransformer_1.default.transform(ast);
+    type_check_1.default(inst);
     const programTranspiled = toTS_1.default(inst);
     const outputContent = options.targetLanguage === 'ts'
         ? programTranspiled

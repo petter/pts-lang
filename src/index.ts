@@ -14,6 +14,7 @@ import transform, { Transformer } from './transform';
 import InstantiationTransformer from './transform/instantiation/InstantiationTransformer';
 import toTS from './transform/toTS';
 import mergeClasses from './transform/ClassDeclarationMerger';
+import typecheck from './type-check/type-check';
 
 const parser = new Parser();
 parser.setLanguage(PTS);
@@ -41,6 +42,9 @@ export default function transpile(sourceCode: string, _options: Options): string
     if (options.verbose) console.log(toSExpressions(ast));
 
     const inst = InstantiationTransformer.transform(ast);
+
+    typecheck(inst);
+
     const programTranspiled = toTS(inst);
     const outputContent =
         options.targetLanguage === 'ts'
